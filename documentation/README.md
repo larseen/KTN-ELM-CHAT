@@ -28,6 +28,7 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 | clientSocket  | Private | Socket  | The socket between host and client, this is passed in the constructor |
 | server  | Private | Server  | Reference to the server that created the ClientHandler, passed in the constructor |
 | username  | Private | String  | Username for the client, should be Null whenever the client is not logged in |
+| messagePool | Private | ArrayList[String] | A pool of messages waiting to be sent to the client.  |
 
 | Function  | Scope     | Returns   | Description   |
 |:---------:|:---------:|:---------:|:--------------|
@@ -38,8 +39,22 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 | attemptSendMessage(String)  | Private | Void  | Attempt to send a message from a user, the message should only be passed to the server if the user is logged in. Respond in accordance with the task description |
 | isUserNameValid(String) | Private | Boolean | Helper function for deciding if a given username is valid  |
 | getUsername() | Public  | String  | Returns the username currently assigned to the socket |
-
+| pushMessage(String) | Public  | Void  | Pushes a given message to the message pool. |
 
 ### Client
 
+| Field     | Scope     | Type                      | Description                                 |
+|:---------:|:---------:|:-------------------------:|:--------------------------------------------|
+| server | Private   |  ServerHandler | Holds the object that handles socket connection |
+
+| Function  | Scope     | Returns   | Description   |
+|:---------:|:---------:|:---------:|:--------------|
+| init()    | Private   | Void      | Establishes the socket connection to the server, assigns the socket its own thread. |
+| run()     | Public    | Void      | Waits for input from the user, passes input to handleInput()  |
+| handleInput(String) | Private | Void  | Handles the given input command, should notify user if command was not recognized or something went wrong, and push a message to the socket if this is appropriate.  |
+
 ### ServerHandler
+
+| Field     | Scope     | Type                      | Description                                 |
+|:---------:|:---------:|:-------------------------:|:--------------------------------------------|
+
