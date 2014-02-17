@@ -1,4 +1,4 @@
-KTE-ELM-CHAT
+KTN-ELM-CHAT
 ===========
 
 KTN chat prosjekt
