@@ -1,10 +1,11 @@
 import java.util.Scanner;
 
-public class Client {
+public class Client implements Runnable {
 	
-	private ServerHandler serverHandler implements Runnable;
+	private ServerHandler serverHandler;
 	
-	void run(){
+	@Override
+	public void run(){
 		while(true){
 			String input = new Scanner(System.in).nextLine();
 			handleInput(input);
