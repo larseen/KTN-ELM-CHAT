@@ -37,7 +37,7 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 | attemptLogout() | Private | Void  | Attempt to log out the user, should respond in accordance with the task description |
 | attemptSendMessage(String)  | Private | Void  | Attempt to send a message from a user, the message should only be passed to the server if the user is logged in. Respond in accordance with the task description |
 | isUserNameValid(String) | Private | Boolean | Helper function for deciding if a given username is valid  |
-| getUsername() | Public  | Public  | String  | Returns the username currently assigned to the socket |
+| getUsername() | Public  | String  | Returns the username currently assigned to the socket |
 
 
 ### Client
