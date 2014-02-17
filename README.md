@@ -1,8 +1,6 @@
 KTN-ELM-CHAT
 ===========
 
-# KTN chat prosjekt
-
 ## Description
 
 KTN-ELM-CHAT is what is suggests, a chat.
