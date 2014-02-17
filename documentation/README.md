@@ -2,6 +2,106 @@
 
 To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects/markdown/syntax "Markdown Syntax")
 
+## Protocol
+
+The protocol is based on frequent communication, where the client is the active part sending frequent requests. The server needs to pool up messages ready to be sent to the client, as these can only be sent as a response to a request. However, the client also needs to pool up messages, as it may be taking input from the user at a time that it is currently attempting to retrieve new messages from the server.
+
+### Rough description
+
+| Client  | Server  |
+|:-------:|:-------:|
+| Request login | If granted, respond with OK and messages, if else respond with an error  |
+| Send message  | If granted, respond with OK, if else respond with an error |
+| Get messages  | If granted, respond with OK and messages, if else respond with an error |
+| Request logout| If granted, respond with OK, if else respond with an error  |
+
+Of course, steps 2. and 3. will usually be repeated frequently, while the login- and logout requests should only happen once; however, this is not for the program to take care of, the user may do as it pleases. The request of getting messages is done automatically by the client, as we want new messages to be displayed as fast as possible.
+
+### JSON formatted requests
+
+This section shows all requests the client should be able to send to the server.
+
+#### Request: Login
+| Field | Value |
+|:-----:|:-----:|
+| request | "login" |
+| context  | _username |
+
+#### Request: Send Message
+| Field | Value |
+|:-----:|:-----:|
+| request | "send message" |
+| context | _message  |
+
+#### Request: Get Messages
+| Field | Value |
+|:-----:|:-----:|
+| request | "get messages" |
+
+#### Request: Logout
+| Field | Value |
+|:-----:|:-----:|
+| request | "logout" |
+
+### JSON formatted responses
+
+This section shows all responses the server should be able to send to the client.
+
+#### Response: Login
+| Field | Value |
+|:-----:|:-----:|
+| response | "login" |
+| status  | "error" |
+| context | "username taken" |
+
+| Field | Value |
+|:-----:|:-----:|
+| response | "login" |
+| status  | "error" |
+| context | "invalid username" |
+
+| Field | Value |
+|:-----:|:-----:|
+| response | "login" |
+| status  | "OK" |
+
+#### Response: Send Message
+| Field | Value |
+|:-----:|:-----:|
+| response | "send message" |
+| status  | "error" |
+| context | "not logged in" |
+
+| Field | Value |
+|:-----:|:-----:|
+| response | "send message" |
+| status  | "OK" |
+
+#### Response: Get Messages
+| Field | Value |
+|:-----:|:-----:|
+| response | "get messages" |
+| status  | "error" |
+| context | "not logged in" |
+
+| Field | Value |
+|:-----:|:-----:|
+| response | "get messages" |
+| status  | "OK" |
+| context | [messages] |
+
+#### Response: Logout
+| Field | Value |
+|:-----:|:-----:|
+| response | "logout" |
+| status  | "error" |
+| context | "not logged in" |
+
+| Field | Value |
+|:-----:|:-----:|
+| response | "login" |
+| status  | "OK" |
+
 ## Classes
 
 ### Server
