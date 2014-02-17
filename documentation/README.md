@@ -2,6 +2,17 @@
 
 To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects/markdown/syntax "Markdown Syntax")
 
+### Table of Contents
+- [Protocol](#protocol)
+  - [Rough Description](#rough-description)
+  - [JSON formatted requests](#json-formatted-requests)
+  - [JSON formatted responses](#json-formatted-responses)
+- [Classes](#classes)
+  - [Server](#server)
+  - [ClientHandler](#clienthandler)
+  - [Client](#client)
+  - [ServerHandler](#serverhandler)
+
 ## Protocol
 
 The protocol is based on frequent communication, where the client is the active part sending frequent requests. The server needs to pool up messages ready to be sent to the client, as these can only be sent as a response to a request. However, the client also needs to pool up messages, as it may be taking input from the user at a time that it is currently attempting to retrieve new messages from the server.
