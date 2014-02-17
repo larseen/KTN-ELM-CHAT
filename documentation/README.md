@@ -115,6 +115,10 @@ This section shows all responses the server should be able to send to the client
 
 ## Classes
 
+The classes are a work in progress, we're still working on them :)
+
+![Chat UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/ktn_uml.png "Chat UML")
+
 ### Server
 
 | Field     | Scope     | Type                      | Description                                 |
@@ -145,9 +149,10 @@ This section shows all responses the server should be able to send to the client
 |:---------:|:---------:|:---------:|:--------------|
 | run() | Public  | Void  | Waits for input from the socket |
 | handleMessage(JSONObject) | Private | Void  | Handles a message received from the client  |
-| attemptLogin(String)  | Private | Void  | Attempts to log in with the desired username, respond in accordance to task description |
-| attemptLogout() | Private | Void  | Attempt to log out the user, respond in accordance to task description |
-| attemptSendMessage(String)  | Private | Void  | Attempt to send a message from a user, the message should only be passed to the server if the user is logged in, respond in accordance to task description |
+| respondToLogin(String)  | Private | Void  | Attempts to log in with the desired username, respond in accordance to task description |
+| respondToLogout() | Private | Void  | Attempt to log out the user, respond in accordance to task description |
+| respondToSendMessage(String)  | Private | Void  | Attempt to send a message from a user, the message should only be passed to the server if the user is logged in, respond in accordance to task description |
+| respondToGetMessages() | Private  | Void  | Attempt to get pooled messages and send to user, respond in accordance to task description |
 | isUserNameValid(String) | Private | Boolean | Helper function for deciding if a given username is valid  |
 | getUsername() | Public  | String  | Returns the username currently assigned to the socket |
 | pushMessage(String) | Public  | Void  | Pushes a given message to the message pool |
@@ -157,12 +162,14 @@ This section shows all responses the server should be able to send to the client
 | Field     | Scope     | Type                      | Description                                 |
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
 | server | Private   |  ServerHandler | Holds the object that handles socket connection |
+| messages |  Private | ArrayList[String] | Holds messages received |
 
 | Function  | Scope     | Returns   | Description   |
 |:---------:|:---------:|:---------:|:--------------|
 | init()    | Private   | Void      | Establishes the socket connection to the server, assigns the socket its own thread |
 | run()     | Public    | Void      | Waits for input from the user, passes input to handleInput()  |
 | handleInput(String) | Private | Void  | Handles the given input command, should notify user if command was not recognized or something went wrong, and push a message to the socket if this is appropriate  |
+| pushMessage(String) | Public  | Void  | Push a message to the list of messages  |
 
 ### ServerHandler
 
@@ -174,6 +181,8 @@ This section shows all responses the server should be able to send to the client
 
 | Function  | Scope     | Returns   | Description   |
 |:---------:|:---------:|:---------:|:--------------|
-| attemptLogin(String)  | Public  | Void  | Pushes a login-attempt with the given username to the message pool |
-| attemptSendMessage(String)  | Public  | Void  | Pushes an attempt of sending a given message to the message pool |
-| attemptLogout()   | Public  | Void  | Pushes logout-attempt to the message pool.  |
+| requestLogin(String)  | Public  | Void  | Pushes a login-request with the given username to the message pool |
+| requestSendMessage(String)  | Public  | Void  | Pushes a request of sending a given message to the message pool |
+| requestLogout()   | Public  | Void  | Pushes logout-request to the message pool  |
+| requestGetMessages()  | Private | Void  | Pushes request of getting messages from the server message pool |
+| handleResponse(JSONObject) |  Private | Void  | Handles respones from the server |
