@@ -10,7 +10,7 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
 | clients   | Private   | ArrayList[ClientHandler]  | Holds all clients, in no specific order     |
 | messages  | Private   | ArrayList[String]         | Holds all messages as formmated strings     |
-| IPAddress | Private   | ???                       | Holds the IP address of the server host     |
+| IPAddress | Private   | InetAddress               | Holds the IP address of the server host     |
 | port      | Private   | Integer                   | Holds the TCP port for the server to run on |
 
 | Function  | Scope     | Returns   | Description   |
@@ -29,8 +29,15 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 | server  | Private | Server  | Reference to the server that created the ClientHandler, passed in the constructor |
 | username  | Private | String  | Username for the client, should be Null whenever the client is not logged in |
 
-
-
+| Function  | Scope     | Returns   | Description   |
+|:---------:|:---------:|:---------:|:--------------|
+| run() | Public  | Void  | Waits for input from the socket |
+| handleMessage(JSONObject) | Private | Void  | Handles a message received from the client  |
+| attemptLogin(String)  | Private | Void  | Attempts to log in with the desired username, should respond in accordance with the task description |
+| attemptLogout() | Private | Void  | Attempt to log out the user, should respond in accordance with the task description |
+| attemptSendMessage(String)  | Private | Void  | Attempt to send a message from a user, the message should only be passed to the server if the user is logged in. Respond in accordance with the task description |
+| isUserNameValid(String) | Private | Boolean | Helper function for deciding if a given username is valid  |
+| getUsername() | Public  | Public  | String  | Returns the username currently assigned to the socket |
 
 
 ### Client
