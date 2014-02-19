@@ -4,9 +4,11 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 
 ### Table of Contents
 - [Protocol](#protocol)
-  - [Rough Description](#rough-description)
-  - [JSON formatted requests](#json-formatted-requests)
-  - [JSON formatted responses](#json-formatted-responses)
+  - [Sequence Diagram](#sequence-diagram)
+  - [JSON formatted requests and responses](#json-formatted-requests-and-responses)
+- [Structure](#structure)
+  - [Basic Structure](#basic-structure)
+  - [Threading](#threading)
 - [Classes](#classes)
   - [Server](#server)
   - [ClientHandler](#clienthandler)
@@ -15,48 +17,50 @@ To write markdown use this: [Markdown Syntax](http://daringfireball.net/projects
 
 ## Protocol
 
-The protocol is based on frequent communication, where the client is the active part sending frequent requests. The server needs to pool up messages ready to be sent to the client, as these can only be sent as a response to a request. However, the client also needs to pool up messages, as it may be taking input from the user at a time that it is currently attempting to retrieve new messages from the server.
+The protocol is based on interchanging messages called requests and responses. An array of different requests are available to the client, starting with simple operation such as "login", "logout" and "message". Whenever the client sends a request, the server needs to send a response supported in the protocol.
 
-### Rough description
+In most cases, the server only sends responses when a request is received. However, when a new message is received by the server, the server needs to broadcast this to all users. In order to do this, a response is generated without any request, this type of response is called a "newMessage", this keyword is still up for consideration.
 
-| Client  | Server  |
-|:-------:|:-------:|
-| Request login | If granted, respond with OK and messages, if else respond with an error  |
-| Send message  | If granted, respond with OK, if else respond with an error |
-| Get messages  | If granted, respond with OK and messages, if else respond with an error |
-| Request logout| If granted, respond with OK, if else respond with an error  |
+### Sequence Diagram
 
-Of course, steps 2. and 3. will usually be repeated frequently, while the login- and logout requests should only happen once; however, this is not for the program to take care of, the user may do as it pleases. The request of getting messages is done automatically by the client, as we want new messages to be displayed as fast as possible.
+The sequence diagram describes how the protocol works. Note however that any command can be given by the user at any time. For example, a user might try to send a message, even though he/she is not logged in. If this happens, the response from the server needs to reflect upon this error. The sequence diagram portraits what a succesful run through the program might look like.
 
-### JSON formatted requests
+![Sequence Diagram](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/Sequence%20Diagram.png "Sequence Diagram")
 
-This section shows all requests the client should be able to send to the server.
+### JSON formatted requests and responses
+
+All the requests and responses are formatted in JSON notation. This is not particularly useful for a Java implementation, but it is required by the task description. JSON formating may prove more useful later on in the project. Here's a list of current request/response formats:
+
+- [Request: Login](#request-login)
+- [Request: Send Message](#request-send-message)
+- [Request: Logout](#request-logout)
+- [Response: Login](#response-login)
+- [Response: Send Message](#response-send-message)
+- [Response: Logout](#response-logout)
+- [Response: New Message](#response-new-message)
 
 #### Request: Login
 | Field | Value |
 |:-----:|:-----:|
 | request | "login" |
-| context  | _username |
+| context | username |
+
+In order to send a login request, use the request "login" along with the desired username in the context field.
 
 #### Request: Send Message
 | Field | Value |
 |:-----:|:-----:|
-| request | "send message" |
-| context | _message  |
+| request | "message" |
+| context | message  |
 
-#### Request: Get Messages
-| Field | Value |
-|:-----:|:-----:|
-| request | "get messages" |
+In order to send a message, use the request "message" along with the desired message in the context field.
 
 #### Request: Logout
 | Field | Value |
 |:-----:|:-----:|
 | request | "logout" |
 
-### JSON formatted responses
-
-This section shows all responses the server should be able to send to the client.
+In order to send a logout request, use the request "logout" (no context required).
 
 #### Response: Login
 | Field | Value |
@@ -65,41 +69,39 @@ This section shows all responses the server should be able to send to the client
 | status  | "error" |
 | context | "username taken" |
 
+If the desired username was taken, the response should return with the status "error" along with the context "username taken".
+
 | Field | Value |
 |:-----:|:-----:|
 | response | "login" |
 | status  | "error" |
-| context | "invalid username" |
+| context | "username invalid" |
+
+If the desired username was invalid, the response should return with the status "error" along with the context "username invalid".
 
 | Field | Value |
 |:-----:|:-----:|
 | response | "login" |
 | status  | "OK" |
+| messages | [messages] |
+
+If the desired username met the server's requirements, the response should return with the status "OK" along with all messages posted in the chat put in the "messages" field.
 
 #### Response: Send Message
 | Field | Value |
 |:-----:|:-----:|
-| response | "send message" |
+| response | "message" |
 | status  | "error" |
 | context | "not logged in" |
+
+If the message was sent by a client not logged in, the response should return with the status "error" along with the context "not logged in".
 
 | Field | Value |
 |:-----:|:-----:|
 | response | "send message" |
 | status  | "OK" |
 
-#### Response: Get Messages
-| Field | Value |
-|:-----:|:-----:|
-| response | "get messages" |
-| status  | "error" |
-| context | "not logged in" |
-
-| Field | Value |
-|:-----:|:-----:|
-| response | "get messages" |
-| status  | "OK" |
-| context | [messages] |
+If the message was received successfully and accepted by the server, the response should return with the status "OK".
 
 #### Response: Logout
 | Field | Value |
@@ -108,18 +110,58 @@ This section shows all responses the server should be able to send to the client
 | status  | "error" |
 | context | "not logged in" |
 
+If the client was not logged in when requesting a logout, the response should return with the status "error" along with the context "not logged in".
+
 | Field | Value |
 |:-----:|:-----:|
 | response | "login" |
 | status  | "OK" |
 
+If the client was successfully logged out from the server, the response should return with the status "OK".
+
+#### Response: New Message
+| Field | Value |
+|:-----:|:-----:|
+| response | "new message" |
+| context  | message |
+
+In the "new message" response, the message that was broadcasted by the server should be placed in the context field.
+
+## Structure
+
+### Basic Structure
+
+The chat consists of four classes, the Client with the inner class ServerHandler, and the Server with the inner class ClientHandler. This is shown in the simple structural UML shown below:
+
+![Simple Structure](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/Simple%20Structure.png "Simple Structure")
+
+The Client and Server classes implement the chat without taking the protocol into the account, as well as leaving the real communication to the handler classes. This is roughly shown in the data flowchart below:
+
+![Data Flowchart](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/Data%20Flowchart.png "Data Flowchart")
+
+Notice how the server needs to have a individual ClientHandler for each client connected to the server. The individual classes are explained more in depth in the [Classes](#classes) section.
+
+### Threading
+
+The operations needed to read input from console and sockets cause the program to halt, making the implementation impossible without the use of multi-threading. Every time we need a thread to stay put and listen for input, we spawn a new thread so that the program can still respond to other events. This is illustrated by two thread flow charts:
+
+![Thread Chart - Client](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/Thread%20Chart%20-%20Client.png "Thread Chart - Client")
+
+The main thread is the one of the client, where input from the user is resolved and brought to the ServerHandler as requests. It is responsible for interrupting the two other threads when the program is asked exit.
+
+![Thread Chart - Server](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/Thread%20Chart%20-%20Server.png "Thread Chart - Server")
+
+The server thread needs no user input, but in order to serve multiple clients, it needs to assign a new thread to each client establishing a connection. Furthermore, we need to take use both of the input- and outputstream of the client's socket. This means that each ClientHandler object also needs to create a new thread in order to be able to listen to the socket at the same time as sending data through it.
+
+In addition, the server thread needs to close all threads it has started upon exiting, and each thread needs to interrupt its own socket thread before closing.
+
 ## Classes
 
-The classes are a work in progress, we're still working on them :)
-
-![Chat UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/ktn_uml.png "Chat UML")
+The classes are a work in progress, we're still working on them! As a result, some of the tables are somewhat inaccurate.
 
 ### Server
+
+![Server UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/UML%20-%20Server.png "Server UML")
 
 | Field     | Scope     | Type                      | Description                                 |
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
@@ -137,6 +179,8 @@ The classes are a work in progress, we're still working on them :)
 | isUsernameAvailable(String) | Public  | Boolean   | Returns true if the username given is currently available, returns false otherwise |
 
 ### ClientHandler
+
+![Server UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/UML%20-%20ClientHandler.png "Server UML")
 
 | Field     | Scope     | Type                      | Description                                 |
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
@@ -159,6 +203,8 @@ The classes are a work in progress, we're still working on them :)
 
 ### Client
 
+![Server UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/UML%20-%20Client.png "Server UML")
+
 | Field     | Scope     | Type                      | Description                                 |
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
 | server | Private   |  ServerHandler | Holds the object that handles socket connection |
@@ -172,6 +218,8 @@ The classes are a work in progress, we're still working on them :)
 | pushMessage(String) | Public  | Void  | Push a message to the list of messages  |
 
 ### ServerHandler
+
+![Server UML](https://raw2.github.com/larseen/KTN-ELM-CHAT/master/documentation/resources/UML%20-%20ServerHandler.png "Server UML")
 
 | Field     | Scope     | Type                      | Description                                 |
 |:---------:|:---------:|:-------------------------:|:--------------------------------------------|
