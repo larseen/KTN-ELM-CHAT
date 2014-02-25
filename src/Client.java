@@ -1,18 +1,36 @@
-import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 public class Client implements Runnable {
 	
+	// Just some testing environment :)
 	public static void main(String[] args) {
+		
 		Client c = new Client();
-		String s = "Login";
-		// Login or login -> [L|l]og\\s?+in
-		if(s.matches("[L|l]og\\s?+in")){
+		
+		String s = "login";
+		String lowerCasedS = s.toLowerCase();
+		
+		String userName;
+		List<String> acceptedLogins =Arrays.asList("login", "log in", "signin", "sign in", "connect");
+		int indexOfLogin = acceptedLogins.indexOf(s);
+		boolean stringIsContained = acceptedLogins.contains(lowerCasedS);
+		
+		if(stringIsContained){
+			c.findUserName(lowerCasedS, indexOfLogin);
 			System.out.println(s);
+			
 		}
 		else {
 			System.out.println("Nope");
 		}
 	}
+	
+	private void findUserName(String input, int index){
+		String userName = input.subSequence(index, input.length()).toString();
+		System.out.println(userName);
+	}
+	
 	private String userName;
 	
 	private Thread mainThread = new Thread();
