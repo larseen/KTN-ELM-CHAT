@@ -10,6 +10,7 @@ public class Client implements Runnable {
 		Client c = new Client();
 		
 		String s = "login";
+		s.
 		String lowerCasedS = s.toLowerCase();
 		
 		String userName;
@@ -28,9 +29,13 @@ public class Client implements Runnable {
 	}
 	
 	private void findUserName(String input, int index){
+		
+		
+		
 		String userName = input.subSequence(index, input.length()).toString();
 		System.out.println(userName);
 	}
+	private String message;
 	
 	private String userName;
 	
@@ -57,4 +62,17 @@ public class Client implements Runnable {
 		
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	class ServerHandler{
+		
+	}
 }

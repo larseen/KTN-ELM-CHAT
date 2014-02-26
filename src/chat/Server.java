@@ -6,5 +6,14 @@ public class Server {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
+	
+	
+	
+	
+	class ClientHandler{
+		
+	}
 
 }
