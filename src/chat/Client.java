@@ -29,10 +29,6 @@ public class Client {
 	
 	public static void main(String[] args) {
 		new Client();
-		/*
-		String message = "log in lolav";
-		String modifiedMessage =  (String) message.subSequence(5, message.length());
-		System.out.println(modifiedMessage);*/
 	}
 	
 	public Client() {
@@ -58,7 +54,6 @@ public class Client {
 
 	//Checks if we are trying to log in
 	private boolean resolveLogin(String message){
-		
 		for(int i=0; i< viableLogins.size();i++){
 			if(message.startsWith(viableLogins.get(i))){
 				userName = cropMessage(message, viableLogins.get(i));
