@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,36 +16,50 @@ public class Client {
 	private String userName;
 	private Thread mainThread = new Thread();
 	private ServerHandler serverHandler;
-	private int port;	
+	private int port;
+	private List<String> viableLogins = Arrays.asList("login", "log in", "signin", "sign in"
+			, "connect");
 	
 	public static void main(String[] args) {
 		new Client();
 	}
 	
 	public Client() {
+	BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
 	
-		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+	// Main while true loop
 		while(true){
 			getInputs(bf);
+			resolveInput(message);
 		}
 	}
 	
 	// Metod for getting input from user
 	public void getInputs(BufferedReader bf){
-		String melding = "";
 		try {
-			melding = bf.readLine();
+			message = bf.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(melding);
+		System.out.println(message);
 	}
 
+	private void resolveLogin(String message){
+		for(int i=0; i< viableLogins.size();i++){
+			if(message.startsWith(viableLogins.get(i))){
+				System.out.println("Det funker");
+			}	
+		}
+	}
 	
-	private void resolveInput(String input){
+	private void resolveLogout(){
 		
 	}
 	
+	private void resolveInput(String input){
+		resolveLogin(input);
+		resolveLogout();
+	}
 	private void pushMessage(String message){
 		
 	}
