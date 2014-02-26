@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -74,10 +76,54 @@ public class Client {
 	
 	
 	
-	class ServerHandler{
+	class ServerHandler extends Thread {
 		private Socket socket;
 		private InputStream inputStream;
 		private OutputStream outputStream;
+		private BufferedReader in;
+		private PrintWriter out;
+		
+		public ServerHandler(String host, int port) {
+			try {
+				socket = new Socket(host, port);
+				inputStream = socket.getInputStream();
+				outputStream = socket.getOutputStream();
+				in = new BufferedReader(new InputStreamReader(inputStream));
+				out = new PrintWriter(outputStream, true);
+				
+				run();
+				
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void run() {
+			
+			while(true) {
+				
+				try {
+					//Get response
+					JSONObject response = new JSONObject(in.readLine());
+					resolveResponse(response);
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			
+		}
+		
 		
 		public void requestLogin(String username){
 			JSONObject request = new JSONObject();
