@@ -15,12 +15,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 public class Client {
 	
-	private String outputMessage;
+	private String host ;
+	private int port;
+	
+	private String outputMessage = "I don't have a message yet!";
 	private String inputMessage;
 	private String userName;
-	private Thread mainThread = new Thread();
+	private Thread mainThread;
 	private ServerHandler serverHandler;
-	private int port;
 	private List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
 			, "connect ", "enter ");
 	private List<String> viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out"
@@ -36,12 +38,14 @@ public class Client {
 	
 	public Client() {
 		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-	
+		//serverHandler = new ServerHandler(host, port);
+		
 		// Main while true loop
 		while(true){
 			getInputs(bf);
 			resolveInput(inputMessage);
 			System.out.println(userName);
+			System.out.println(outputMessage);
 		}
 	}
 	
@@ -78,9 +82,9 @@ public class Client {
 	}
 	// Checks if we are trying to log out
 	private boolean resolveLogout(){
-		for(int i=0; i< viableLogouts.size();i++){
+		for(int i = 0; i< viableLogouts.size();i++){
 			if (inputMessage.equals(viableLogouts.get(i))){
-				//Disconnect here
+				serverHandler.requestLogout();
 				return true;
 			}
 		}
