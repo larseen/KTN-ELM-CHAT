@@ -16,16 +16,19 @@ public class Server {
 	private InetAddress address;
 	private Integer port;
 	private ArrayList<ClientHandler> clients;
+	private ArrayList<String> messages;
 	
-	public void getMessages() {
-		
+	public ArrayList<String> getMessages() {
+		return messages;
 	}
 	
 	
 	
 	
 	public void pushMessages(String message){
-		
+		for(ClientHandler client : clients){
+			client.pushMessage(message);
+		}
 	}
 	
 	
