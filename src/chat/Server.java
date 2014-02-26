@@ -2,27 +2,43 @@ package chat;
 
 <<<<<<< HEAD
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 =======
-import java.net.Socket;
 
 import org.json.JSONObject;
 >>>>>>> FETCH_HEAD
 
-public class Server {
+public class Server implements Runnable{
 
-	private Socket serverSocket;
+	private ServerSocket serverSocket;
 	private InetAddress address;
 	private Integer port;
 	private ArrayList<ClientHandler> clients;
 	private ArrayList<String> messages;
 	
-	public ArrayList<String> getMessages() {
-		return messages;
+	
+	public void run() {
+		while(true){
+			
+		}
 	}
 	
 	
+	
+	
+	public void init(){
+		address = InetAddress.getLocalHost();
+		port = 8000;
+		serverSocket = new ServerSocket(port);
+	}
+	
+	
+	
+	public ArrayList<String> getMessages() {
+		return messages;
+	}
 	
 	
 	public void pushMessages(String message){
@@ -30,8 +46,6 @@ public class Server {
 			client.pushMessage(message);
 		}
 	}
-	
-	
 	
 	
 	public boolean isUsernameAvailable(String username){
@@ -75,5 +89,18 @@ public class Server {
 		}
 		
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
