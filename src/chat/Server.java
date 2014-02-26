@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 
@@ -23,7 +25,7 @@ public class Server implements Runnable{
 		while(true){
 			ClientHandler client;
 			try {
-				client = new ClientHandler(serverSocket.accept());
+				client = new ClientHandler(serverSocket.accept(), this);
 				clients.add(client);
 				client.start();
 			} catch (IOException e) {
@@ -83,11 +85,13 @@ public class Server implements Runnable{
 	
 	class ClientHandler extends Thread {
 		private Socket socket;
+		private Server server;
 		private String username;
-		private LinkedList<JSONObject> messagePool;
+		private LinkedList<String> messagePool;
 		
-		public ClientHandler(Socket socket) {
+		public ClientHandler(Socket socket, Server server) {
 			this.socket = socket;
+			this.server = server;
 		}
 		
 		public String getUsername(){
@@ -95,35 +99,47 @@ public class Server implements Runnable{
 		}
 		
 		private void handleMessage(JSONObject message){
-			
+			try {
+				if(((message.getString("request")).toLowerCase()).equals("message")){
+					respondToMessage(message.getString("contex"));
+				}
+				if(((message.getString("request")).toLowerCase()).equals("logout")){
+					respondToLogout();
+				}
+				if(((message.getString("request")).toLowerCase()).equals("login")){
+					respondToLogin(message.getString("contex"));
+				}
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		public void pushMessage(String message){
-
+			messagePool.add(message);
 		}
 		
 		private void respondToLogin(String username){
-			
+			if(isUsernameValid(username)){
+				this.username = username;
+			}
 		}
 		
-		private void respondToMessage(){
-			
+		private void respondToMessage(String message){
+			server.pushMessages(message);
 		}
-
-		private void respondToSendMessage(String message){
-			
+		
+		private void respondToLogout(){
+			this.stop();
 		}
 		
 		private void respondToGetMessage(){
 			
 		}
 		
+		@SuppressWarnings("unused")
 		private boolean isUsernameValid(String username){
-			
-		}
-		
-		private void respondToLogout(){
-		
+			return server.isUsernameAvailable(username);
 		}
 		
 		private void resolveRequest(JSONObject request){
