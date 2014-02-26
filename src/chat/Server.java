@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,9 +21,30 @@ public class Server implements Runnable {
 	private Integer port;
 	private ArrayList<ClientHandler> clients;
 	private ArrayList<String> messages;
-
+	
+	public static void main(String[] args) {
+		Server s = new Server(8888);
+	}
+	
+	public Server(Integer port) {
+		this.port = port;
+		clients = new ArrayList<ClientHandler>();
+		try {
+			serverSocket = new ServerSocket(port);
+			run();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
 	public void run() {
 		while (true) {
+			System.out.println(clients);
 			ClientHandler client;
 			try {
 				client = new ClientHandler(serverSocket.accept(), this);
@@ -35,22 +57,9 @@ public class Server implements Runnable {
 		}
 	}
 
-	public void init() {
-		try {
-			port = 8000;
-			serverSocket = new ServerSocket(port);
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public String getMessages() {
+	public JSONArray getMessages() {
 		JSONArray jsArray = new JSONArray(messages);
-		return jsArray.toString();
+		return jsArray;
 	}
 
 	public void pushMessages(String message) {
@@ -75,7 +84,8 @@ public class Server implements Runnable {
 		private InputStream IS;
 		private OutputStream OS;
 		private PrintWriter out;
-
+		
+		@Override
 		public void run() {
 			while (true) {
 				String message;
@@ -94,8 +104,12 @@ public class Server implements Runnable {
 
 			}
 		}
+		
 
-		public void init() {
+		public ClientHandler(Socket socket, Server server) {
+			this.socket = socket;
+			this.server = server;
+			
 			try {
 				IS = socket.getInputStream();
 				OS = socket.getOutputStream();
@@ -103,11 +117,6 @@ public class Server implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-
-		public ClientHandler(Socket socket, Server server) {
-			this.socket = socket;
-			this.server = server;
 		}
 
 		public String getUsername() {
@@ -137,8 +146,17 @@ public class Server implements Runnable {
 		private void respondToLogin(String username) {
 			if (isUsernameValid(username)) {
 				this.username = username;
-				sendJSONObject(createRespond("login", "OK",
-						server.getMessages()));
+				JSONObject responsObject = new JSONObject();
+				try {
+					responsObject.put("response", "login");
+					responsObject.put("status", "OK");
+					responsObject.put("messages", server.getMessages());
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				sendJSONObject(responsObject);
 			} else {
 				sendJSONObject(createRespond("login", "error", "username taken"));
 			}
@@ -174,7 +192,7 @@ public class Server implements Runnable {
 				String context) {
 			JSONObject responsObject = new JSONObject();
 			try {
-				responsObject.put("request", responsObject);
+				responsObject.put("response", respons);
 				responsObject.put("status", status);
 				responsObject.put("context", context);
 			} catch (JSONException e) {
@@ -188,6 +206,11 @@ public class Server implements Runnable {
 			String responsString = respons.toString();
 			out = new PrintWriter(OS, true);
 			out.println(responsString);
+		}
+		
+		@Override
+		public String toString() {
+			return username;
 		}
 
 	}
