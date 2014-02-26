@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 public class Client {
@@ -164,7 +165,50 @@ public class Client {
 			
 		}
 		
-		private void resolveResponse(JSONObject response){
+		private void resolveResponse(JSONObject r){
+			try {
+				String response = r.getString("response");
+				if (response.equals("login")){
+					
+					String status = r.getString("status");
+					if (status.equals("error")){
+						pushMessage("Error: "+ r.getString("context"));
+					}
+					else if (status.equals("OK")){
+						JSONArray a = r.getJSONArray("messages");
+						for (int i = 0; i<a.length(); i++){
+							pushMessage(a.getString(i));
+						}
+					}
+					
+				}
+				else if (response.equals("message")){
+					
+					String status = r.getString("status");
+					if (status.equals("error")){
+						pushMessage("Error: "+ r.getString("context"));
+					}
+					
+				}
+				else if (response.equals("logout")){
+					
+					String status = r.getString("status");
+					if (status.equals("error")){
+						pushMessage("Error: "+ r.getString("context"));
+					}
+					else if (status.equals("OK")){
+						pushMessage("You have been logged out");
+					}
+					
+				}
+				else if(response.equals("new message")){
+					
+				}
+				
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 	}
