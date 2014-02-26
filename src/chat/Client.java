@@ -12,53 +12,85 @@ import org.json.JSONException;
 import org.json.JSONObject;
 public class Client {
 	
-	private String message;
+	private String outputMessage;
+	private String inputMessage;
 	private String userName;
 	private Thread mainThread = new Thread();
 	private ServerHandler serverHandler;
 	private int port;
-	private List<String> viableLogins = Arrays.asList("login", "log in", "signin", "sign in"
-			, "connect");
+	private List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
+			, "connect ", "enter ");
+	private List<String> viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out"
+			, "disconnect", "exit");
 	
 	public static void main(String[] args) {
 		new Client();
+		/*
+		String message = "log in lolav";
+		String modifiedMessage =  (String) message.subSequence(5, message.length());
+		System.out.println(modifiedMessage);*/
 	}
 	
 	public Client() {
-	BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
 	
-	// Main while true loop
+		// Main while true loop
 		while(true){
 			getInputs(bf);
-			resolveInput(message);
+			resolveInput(inputMessage);
+			System.out.println(userName);
 		}
 	}
 	
 	// Metod for getting input from user
 	public void getInputs(BufferedReader bf){
 		try {
-			message = bf.readLine();
+			inputMessage = bf.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(message);
+		System.out.println(inputMessage);
 	}
 
-	private void resolveLogin(String message){
+	//Checks if we are trying to log in
+	private boolean resolveLogin(String message){
+		
 		for(int i=0; i< viableLogins.size();i++){
 			if(message.startsWith(viableLogins.get(i))){
-				System.out.println("Det funker");
+				userName = cropMessage(message, viableLogins.get(i));
+				return true;
 			}	
 		}
+		return false;
 	}
 	
-	private void resolveLogout(){
-		
+	// We are going to send a message here.
+	private void resolveMessage(String message){
+		outputMessage = message;
 	}
 	
+	// Crops message
+	private String cropMessage(String message, String loginMessage){
+		return (String) message.subSequence(loginMessage.length(), message.length());
+	}
+	// Checks if we are trying to log out
+	private boolean resolveLogout(){
+		for(int i=0; i< viableLogouts.size();i++){
+			if (inputMessage.equals(viableLogouts.get(i))){
+				//Disconnect here
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	// Tries to do find out what the message means
 	private void resolveInput(String input){
-		resolveLogin(input);
-		resolveLogout();
+		if(resolveLogin(input)){}
+		else if(resolveLogout()){}
+		else{
+			resolveMessage(input);			
+		}
 	}
 	private void pushMessage(String message){
 		
