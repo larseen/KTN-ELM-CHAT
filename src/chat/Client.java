@@ -57,4 +57,17 @@ public class Client implements Runnable {
 		
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	class ServerHandler{
+		
+	}
 }
