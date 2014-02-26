@@ -1,8 +1,14 @@
 package chat;
 
+<<<<<<< HEAD
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+=======
+import java.net.Socket;
+
+import org.json.JSONObject;
+>>>>>>> FETCH_HEAD
 
 public class Server {
 
@@ -45,7 +51,25 @@ public class Server {
 	
 	
 	
-	class ClientHandler{
+	class ClientHandler extends Thread {
+		private Socket socket;
+		private String username;
+		
+		public void pushMessage(String message){
+			
+		}
+		
+		private void respondToLogin(String username){
+			
+		}
+		
+		private void respondToMessage(){
+			
+		}
+		
+		private void resolveRequest(JSONObject request){
+			
+		}
 		
 	}
 
