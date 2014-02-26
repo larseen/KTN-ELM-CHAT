@@ -87,7 +87,6 @@ public class Server implements Runnable{
 		private Socket socket;
 		private Server server;
 		private String username;
-		private LinkedList<String> messagePool;
 		
 		public ClientHandler(Socket socket, Server server) {
 			this.socket = socket;
@@ -101,13 +100,13 @@ public class Server implements Runnable{
 		private void handleMessage(JSONObject message){
 			try {
 				if(((message.getString("request")).toLowerCase()).equals("message")){
-					respondToMessage(message.getString("contex"));
+					respondToMessage(message.getString("context"));
 				}
 				if(((message.getString("request")).toLowerCase()).equals("logout")){
 					respondToLogout();
 				}
 				if(((message.getString("request")).toLowerCase()).equals("login")){
-					respondToLogin(message.getString("contex"));
+					respondToLogin(message.getString("context"));
 				}
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -116,7 +115,7 @@ public class Server implements Runnable{
 		}
 		
 		public void pushMessage(String message){
-			messagePool.add(message);
+			
 		}
 		
 		private void respondToLogin(String username){
@@ -130,7 +129,7 @@ public class Server implements Runnable{
 		}
 		
 		private void respondToLogout(){
-			this.stop();
+			
 		}
 		
 		private void respondToGetMessage(){
@@ -142,8 +141,17 @@ public class Server implements Runnable{
 			return server.isUsernameAvailable(username);
 		}
 		
-		private void resolveRequest(JSONObject request){
-			
+		private JSONObject createRespond(String respons, String status, String context){
+			JSONObject responsObject = new JSONObject();
+			try {
+				responsObject.put("request", responsObject);
+				responsObject.put("status", status);
+				responsObject.put("context", context);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return responsObject;
 		}
 		
 	}
