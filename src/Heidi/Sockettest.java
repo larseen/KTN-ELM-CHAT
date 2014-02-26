@@ -1,4 +1,4 @@
-package Heidi;
+package heidi;
 
 import java.io.BufferedReader;
 import java.io.IOException;

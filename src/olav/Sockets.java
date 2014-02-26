@@ -17,7 +17,6 @@ public class Sockets {
 	}
 	
 	public Sockets(){ 
-		SocketSender sender = new SocketSender(8888);
 		System.out.println("Help");
 	}
 

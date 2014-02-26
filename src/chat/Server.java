@@ -23,7 +23,7 @@ public class Server implements Runnable {
 	private ArrayList<String> messages;
 	
 	public static void main(String[] args) {
-		Server s = new Server(8888);
+		new Server(8888);
 	}
 	
 	public Server(Integer port) {
