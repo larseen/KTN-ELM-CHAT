@@ -1,3 +1,4 @@
+package chat;
 import java.net.Socket;
 
 import org.json.JSONException;
