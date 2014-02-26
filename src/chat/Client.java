@@ -1,64 +1,44 @@
 package chat;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-public class Client implements Runnable {
+public class Client {
 	
-	// Just some testing environment :)
-	public static void main(String[] args) {
-		
-		Client c = new Client();
-		
-		String s = "login";
-		s.
-		String lowerCasedS = s.toLowerCase();
-		
-		String userName;
-		List<String> acceptedLogins =Arrays.asList("login", "log in", "signin", "sign in", "connect");
-		int indexOfLogin = acceptedLogins.indexOf(s);
-		boolean stringIsContained = acceptedLogins.contains(lowerCasedS);
-		
-		if(stringIsContained){
-			c.findUserName(lowerCasedS, indexOfLogin);
-			System.out.println(s);
-			
-		}
-		else {
-			System.out.println("Nope");
-		}
-	}
-	
-	private void findUserName(String input, int index){
-		
-		
-		
-		String userName = input.subSequence(index, input.length()).toString();
-		System.out.println(userName);
-	}
 	private String message;
-	
 	private String userName;
-	
 	private Thread mainThread = new Thread();
 	private ServerHandler serverHandler;
+	private int port;	
 	
-	//InetAddress address= new InetAddress();
-	private int port;
+	public static void main(String[] args) {
+		new Client();
+	}
 	
-	@Override
-	public void run(){
+	public Client() {
+	
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
-			@SuppressWarnings("resource")
-			String input = new Scanner(System.in).nextLine();
-			resolveInput(input);
+			getInputs(bf);
 		}
 	}
+	
+	// Metod for getting input from user
+	public void getInputs(BufferedReader bf){
+		String melding = "";
+		try {
+			melding = bf.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(melding);
+	}
+
 	
 	private void resolveInput(String input){
 		
