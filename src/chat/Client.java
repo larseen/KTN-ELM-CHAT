@@ -1,7 +1,12 @@
 package chat;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
+import org.json.JSONObject;
 public class Client implements Runnable {
 	
 	// Just some testing environment :)
@@ -73,6 +78,22 @@ public class Client implements Runnable {
 	
 	
 	class ServerHandler{
+		private Socket socket;
+		private InputStream inputStream;
+		private OutputStream outputStream;
 		
+		public void requestLogin(String username){
+			
+		}
+		
+		public void requestSendMessage(String message){
+			
+		}
+		public void requestLogout(){
+			
+		}
+		private void resolveResponse(JSONObject response){
+			
+		}
 	}
 }
