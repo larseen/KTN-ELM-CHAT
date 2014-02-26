@@ -6,7 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import org.json.JSONObject;
+
 
 public class Server implements Runnable{
 
@@ -82,13 +84,22 @@ public class Server implements Runnable{
 	class ClientHandler extends Thread {
 		private Socket socket;
 		private String username;
+		private LinkedList<JSONObject> messagePool;
 		
 		public ClientHandler(Socket socket) {
 			this.socket = socket;
 		}
 		
-		public void pushMessage(String message){
+		public String getUsername(){
+			return username;
+		}
+		
+		private void handleMessage(JSONObject message){
 			
+		}
+		
+		public void pushMessage(String message){
+
 		}
 		
 		private void respondToLogin(String username){
@@ -97,6 +108,22 @@ public class Server implements Runnable{
 		
 		private void respondToMessage(){
 			
+		}
+
+		private void respondToSendMessage(String message){
+			
+		}
+		
+		private void respondToGetMessage(){
+			
+		}
+		
+		private boolean isUsernameValid(String username){
+			
+		}
+		
+		private void respondToLogout(){
+		
 		}
 		
 		private void resolveRequest(JSONObject request){
