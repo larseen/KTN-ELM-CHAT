@@ -29,6 +29,7 @@ public class Server implements Runnable {
 	public Server(Integer port) {
 		this.port = port;
 		clients = new ArrayList<ClientHandler>();
+		messages = new ArrayList<String>();
 		try {
 			serverSocket = new ServerSocket(port);
 			run();
@@ -63,8 +64,11 @@ public class Server implements Runnable {
 	}
 
 	public void pushMessages(String message) {
+		messages.add(message);
 		for (ClientHandler client : clients) {
-			client.pushMessage(message);
+			if(client.username != null) {
+				client.pushMessage(message);
+			}
 		}
 	}
 
@@ -80,7 +84,7 @@ public class Server implements Runnable {
 	class ClientHandler extends Thread {
 		private Socket socket;
 		private Server server;
-		private String username;
+		private String username = null;
 		private InputStream IS;
 		private OutputStream OS;
 		private PrintWriter out;
@@ -144,7 +148,11 @@ public class Server implements Runnable {
 		}
 
 		private void respondToLogin(String username) {
-			if (isUsernameValid(username)) {
+			if(this.username != null) {
+				sendJSONObject(createRespond("login", "error", "already logged in"));
+			}
+			
+			else if (isUsernameValid(username)) {
 				this.username = username;
 				JSONObject responsObject = new JSONObject();
 				try {
@@ -155,7 +163,8 @@ public class Server implements Runnable {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+				System.out.println(responsObject.toString());
+				System.out.println(server.getMessages());
 				sendJSONObject(responsObject);
 			} else {
 				sendJSONObject(createRespond("login", "error", "username taken"));
@@ -164,6 +173,7 @@ public class Server implements Runnable {
 
 		private void respondToMessage(String message) {
 			if (this.username != null) {
+				message = this.username + ": " + message;
 				server.pushMessages(message);
 				sendJSONObject(createRespond("send message", "OK", ""));
 			} else {
@@ -174,7 +184,8 @@ public class Server implements Runnable {
 
 		private void respondToLogout() {
 			if (this.username != null) {
-				sendJSONObject(createRespond("login", "OK", ""));
+				sendJSONObject(createRespond("logout", "OK", ""));
+				this.username = null;
 			} else {
 				sendJSONObject(createRespond("logout", "error", "not logged in"));
 			}
