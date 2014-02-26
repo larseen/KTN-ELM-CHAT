@@ -1,9 +1,7 @@
 package chat;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -14,53 +12,95 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 public class Client {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 *							PROTOCOL VARIABLES
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+	 *	These variables are in place in order to make the implementation
+	 *	of the protocol more readable to other people. Also, it enables
+	 *	the protocol to be edited with greater ease.
+	 */
+	private static final String
+		RESPONSE_FIELD = "response",
+		REQUEST_FIELD = "request",
+		STATUS_FIELD = "status",
+		CONTEXT_FIELD = "context";
 	
-	private String host =  "78.91.2.158" ;
-	private int port = 8888;
+	private static final String[] COMMANDS = {"login", "logout", "message", "new message"};
+	private static final int LOGIN = 0, LOGOUT = 1, MESSAGE = 2, NEW_MESSAGE = 3;
 	
-	private String outputMessage = "I don't have a message yet!";
-	private String inputMessage;
-	private String userName;
-	private ServerHandler serverHandler;
+	private static final String[] STATUSES = {"error", "OK"};
+	private static final int ERROR = 0, OK = 1;
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 *							   OUTPUT STRINGS
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+	 *	These variables are in place in order to more easily edit the
+	 *	output given to the user, as well as for other people to get
+	 *	an idea of what to expect from the program.
+	 */
+	private static final String
+		HOST_NOT_FOUND = "The host you were trying to connect to was not found! Please try again.",
+		IO_ERROR = "Something went wrong with the I/O, please contact Raymi",
+		JSON_ERROR = "Something went wrong with JSON formatting, please contact Raymi",
+		LOGIN_GRANTED = "Successfully logged in!",
+		LOGOUT_GRANTED = "Successfully logged out!";
+	
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 *							COMMAND TRIGGERS
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+	 *	//TODO: Fill this BrOlav
+	 */
+	//TODO: Change to private static final, also reconsider variable names
 	private List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
 			, "connect ", "enter ");
 	private List<String> viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out"
 			, "disconnect", "exit");
 	
-	public static void main(String[] args) {
-		new Client();
-	}
+	private ServerHandler serverHandler;
 	
-	public Client() {
-		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-		serverHandler = new ServerHandler(host, port);
+	public Client(String HOST, int PORT) {
+		
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		serverHandler = new ServerHandler(HOST, PORT);
 		serverHandler.start();
 		
-		// Main while true loop
 		while(true){
-			getInputs(bf);
-			resolveInput(inputMessage);
+			resolveInput(getKeyboardInput(in));
 		}
 	}
 	
-	// Metod for getting input from user
-	public void getInputs(BufferedReader bf){
+	/*
+	 * CHANGES
+	 * getInputs renamed to getKeyboardInput
+	 * now returns String
+	 */
+	public String getKeyboardInput(BufferedReader in){
 		try {
-			inputMessage = bf.readLine();
+			return in.readLine();
 		} catch (IOException e) {
+			//TODO: Should respond with appropriate message (use pushMessage())
 			e.printStackTrace();
+			return null;
 		}
 	}
 
 	//Checks if we are trying to log in
 	private boolean resolveLogin(String message){
+		
+		/*
+		 * TODO: Cleanup
+		 * This is a mess, please clean this up, also rename variables
+		 * HINT: Use enhanced for-loops
+		 */
 		for(int i=0; i< viableLogins.size();i++){
 			if(message.startsWith(viableLogins.get(i))){
-				userName = cropMessage(message, viableLogins.get(i));
-				serverHandler.requestLogin(userName);
+				String username = cropMessage(message, viableLogins.get(i));
+				serverHandler.requestLogin(username);
 				return true;
 			}	
 		}
+		
 		return false;
 	}
 	
@@ -70,12 +110,19 @@ public class Client {
 	}
 	
 	// Crops message
+	//TODO: Consider renaming this function
 	private String cropMessage(String message, String loginMessage){
 		return (String) message.subSequence(loginMessage.length(), message.length());
 	}
 	
 	// Checks if we are trying to log out
 	private boolean resolveLogout(){
+		
+		/*
+		 * TODO: Cleanup
+		 * Use enhanced for-loops
+		 */
+		String inputMessage = "This should be removed, input should be taken as argument";
 		for(int i = 0; i< viableLogouts.size();i++){
 			if (inputMessage.equals(viableLogouts.get(i))){
 				serverHandler.requestLogout();
@@ -85,8 +132,23 @@ public class Client {
 		return false;
 	}
 	
-	// Tries to do find out what the message means
+	//TODO: Rename resolve functions to attempt, this one should be named interpretInput();
 	private void resolveInput(String input){
+		
+		/*
+		 * TODO: This should be restructured into something like this:
+		 * String command;
+		 * if((command = findLoginCommand(input)) != null) {
+		 * 		attemptLogin(input, command)
+		 * } else if((command = findLogoutCommand(input) != null) {
+		 * 		attemptLogout();
+		 * } else { attemptSendMessage(input); }
+		 * 
+		 * It's easier to see what's going on without having to dig
+		 * into code, and encapsulation is increased.
+		 * 
+		 */
+		
 		if(resolveLogin(input)){}
 		else if(resolveLogout()){}
 		else{
@@ -97,153 +159,216 @@ public class Client {
 	private void pushMessage(String message){
 		System.out.println(message);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 *							SERVER HANDLER
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+	 *	The server handler carries out all requests given by the client
+	 *	by wrapping data into JSON objects and sending it through a
+	 *	socket to the server. It also handles all responses from the
+	 *	server and notifies the client of any important events such as
+	 *	new messages and errors.
+	 *
+	 *	In essence, the server handler carries out the protocol provided
+	 *	in the documentation in a safe and efficient way.
+	 *
+	 *	NOTE: The server handler runs in a thread of its own. In order
+	 *	for the server handler to start listening to the server, you
+	 *	need to start it by using .start();
+	 */
 	class ServerHandler extends Thread {
 		private Socket socket;
-		private InputStream inputStream;
-		private OutputStream outputStream;
 		private BufferedReader in;
 		private PrintWriter out;
 		
-		public ServerHandler(String host, int port) {
-			try {
-				socket = new Socket(host, port);
-				inputStream = socket.getInputStream();
-				outputStream = socket.getOutputStream();
-				in = new BufferedReader(new InputStreamReader(inputStream));
-				out = new PrintWriter(outputStream, true);
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *							INITIALIZING VARIABLES
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	In order for the server handler to work properly, we need
+		 *	to successfully initialize the BufferedReader to read strings
+		 *	from the socket, and the PrintWriter to write strings to it.
+		 */
+		public ServerHandler(String HOST, int PORT) {
+			try {				
+				socket = new Socket(HOST, PORT);
+				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				out = new PrintWriter(socket.getOutputStream(), true);
 				
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
+			catch (UnknownHostException e) { pushMessage(HOST_NOT_FOUND); } 
+			catch (IOException e) { pushMessage(IO_ERROR); }
 		}
 		
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *								RUN
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	As long as the program is running, we wait for the server
+		 *	to push messages (responses), we need to handle these
+		 *	appropriately through resolveResponse();
+		 */
 		@Override
 		public void run() {
 			
 			while(true) {
-				
-				try {
-					//Get response
+				try { 	
 					JSONObject response = new JSONObject(in.readLine());
-					resolveResponse(response);
-					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
+					resolveResponse(response); 
+				} 	
+				catch (IOException e) { pushMessage(IO_ERROR); } 
+				catch (JSONException e) { pushMessage(JSON_ERROR); }		
 			}
-			
 		}
 		
-		
-		public void requestLogin(String username){
-			JSONObject request = new JSONObject();
-			try {
-				request.put("request", "login");
-				request.put("context", username);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *							RESOLVE RESPONSE
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	resolveResponse() takes a JSONObject, reads its contents and
+		 *	uses the protocol to figure out what messages should be pushed
+		 *	to the client. The command is given in the response field,
+		 *	you can find all available commands in the COMMANDS variable.
+		 */
+		private void resolveResponse(JSONObject response) throws JSONException {
+			
+			String responseType = response.getString(RESPONSE_FIELD);
+			Integer responseTypeIndex = Arrays.asList(COMMANDS).indexOf(responseType);
+			
+			switch(responseTypeIndex) {
+				case LOGIN:
+					resolveLogin(response);
+					break;
+					
+				case LOGOUT:
+					resolveLogout(response);
+					break;
+					
+				case MESSAGE:
+					resolveMessage(response);
+					break;
+					
+				case NEW_MESSAGE:
+					resolveNewMessage(response);
+					break;
 			}
-			sendRequest(request);
+		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *							RESOLVE LOGIN
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	If the login request was denied, we need to notify the client
+		 *	with the proper error message (in the context field). If it
+		 *	was successful, we tell the client that the request was granted
+		 *	and proceed with pushing all messages provided by the server.
+		 */
+		private void resolveLogin(JSONObject response) throws JSONException {
+			String status = response.getString(STATUS_FIELD);
+			Integer statusIndex = Arrays.asList(STATUSES).indexOf(status);
+			
+			switch(statusIndex) {
+				case ERROR:
+					pushMessage("Error: "+response.getString(CONTEXT_FIELD));
+					break;
+					
+				case OK:
+					pushMessage(LOGIN_GRANTED);
+					JSONArray messages = response.getJSONArray(CONTEXT_FIELD);
+					for(int i = 0; i < messages.length(); i++) { 
+						pushMessage( messages.getString(i) );
+					}
+					break;
+			}
+		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *							RESOLVE LOGOUT
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	If the logout request was erroneous, we need to notify the client,
+		 *	if it was successful, we tell the client that the logout was
+		 *	granted by the server.
+		 */
+		private void resolveLogout(JSONObject response) throws JSONException {
+			String status = response.getString(STATUS_FIELD);
+			Integer statusIndex = Arrays.asList(STATUSES).indexOf(status);
+			
+			switch(statusIndex) {
+				case ERROR:
+					pushMessage("Error: "+response.getString(CONTEXT_FIELD));
+					break;
+					
+				case OK:
+					pushMessage(LOGOUT_GRANTED);
+			}
+		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *							RESOLVE MESSAGE
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	Retrieve the status from the status field. If the message was sent
+		 *	successfully, we do not need to do anything, if the response
+		 *	however returns with an error, we need to notify the client.
+		 */
+		private void resolveMessage(JSONObject response) throws JSONException {
+			String status = response.getString(STATUS_FIELD);
+			if(status.equals(STATUSES[ERROR])) {
+				pushMessage("Error: "+response.getString(CONTEXT_FIELD));
+			}
+		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *						  RESOLVE NEW MESSAGE
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	Retrieve the message from the context field and push it to
+		 *	the client. No statuses are necessary.
+		 */
+		private void resolveNewMessage(JSONObject response) throws JSONException {
+			String message = response.getString(CONTEXT_FIELD);
+			pushMessage(message);
+		}
+		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *						  		REQUESTS
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	All requests are easily formed using JSON objects. They are made
+		 *	in accordance with the protocol provided in the documentation.
+		 *	If something should go wrong during the building of JSON objects,
+		 *	we notify the client with a JSON_ERROR.
+		 */
+		public void requestLogin(String username){
+			try {
+				JSONObject request = new JSONObject();
+				request.put(REQUEST_FIELD, COMMANDS[LOGIN]);
+				request.put(CONTEXT_FIELD, username);
+				sendRequest(request);
+			} catch (JSONException e) { pushMessage(JSON_ERROR); }
 		}
 		
 		public void requestSendMessage(String message){
-			JSONObject request = new JSONObject();
 			try {
-				request.put("request", "message");
-				request.put("context", message);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			sendRequest(request);
+				JSONObject request = new JSONObject();
+				request.put(REQUEST_FIELD, COMMANDS[MESSAGE]);
+				request.put(CONTEXT_FIELD, message);
+				sendRequest(request);
+			} catch (JSONException e) { pushMessage(JSON_ERROR); }
 		}
 		
 		public void requestLogout(){
-			JSONObject request = new JSONObject();
 			try {
-				request.put("request", "logout");
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				JSONObject request = new JSONObject();
+				request.put(REQUEST_FIELD, COMMANDS[LOGOUT]);
+				sendRequest(request);
+			} catch (JSONException e) { pushMessage(JSON_ERROR); }
 			
-			sendRequest(request);
 		}
 		
+		/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		 *						  		SEND REQUEST
+		 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+		 *	By using our already defined PrintWriter out, it is very simple
+		 *	to send JSONObjects as strings.
+		 */
 		private void sendRequest(JSONObject request) {
 			out.println(request.toString());
 		}
-		
-		private void resolveResponse(JSONObject r){
 
-			try {
-				String response = r.getString("response");
-				if (response.equals("login")){
-					
-					String status = r.getString("status");
-					if (status.equals("error")){
-						pushMessage("Error: "+ r.getString("context"));
-					}
-					else if (status.equals("OK")){
-						pushMessage("Login granted, messages follow ...");
-						JSONArray a = r.getJSONArray("messages");
-						for (int i = 0; i < a.length(); i++){
-							pushMessage(a.getString(i));
-						}
-					}
-					
-				}
-				else if (response.equals("message")){
-					
-					String status = r.getString("status");
-					if (status.equals("error")){
-						pushMessage("Error: "+ r.getString("context"));
-					}
-					
-				}
-				else if (response.equals("logout")){
-					
-					String status = r.getString("status");
-					if (status.equals("error")){
-						pushMessage("Error: "+ r.getString("context"));
-					}
-					else if (status.equals("OK")){
-						pushMessage("You have been logged out");
-					}
-					
-				}
-				else if(response.equals("new message")){
-					
-					pushMessage(r.getString("context"));
-					
-				}
-				
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
 	}
 }

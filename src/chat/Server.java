@@ -16,7 +16,27 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Server implements Runnable {
-
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 *							PROTOCOL VARIABLES
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
+	 *	These variables are in place in order to make the implementation
+	 *	of the protocol more readable to other people. Also, it enables
+	 *	the protocol to be edited with greater ease.
+	 */
+	private static final String
+		RESPONSE_FIELD = "response",
+		REQUEST_FIELD = "request",
+		STATUS_FIELD = "status",
+		CONTEXT_FIELD = "context";
+	
+	private static final String[] COMMANDS = {"login", "logout", "message", "new message"};
+	private static final int LOGIN = 0, LOGOUT = 1, MESSAGE = 2, NEW_MESSAGE = 3;
+	
+	private static final String[] STATUSES = {"error", "OK"};
+	private static final int ERROR = 0, OK = 1;
+	
+	
+	
 	private ServerSocket serverSocket;
 	private Integer port;
 	private ArrayList<ClientHandler> clients;
@@ -27,9 +47,13 @@ public class Server implements Runnable {
 	}
 	
 	public Server(Integer port) {
+		//TODO: Do we really need this field?
 		this.port = port;
+		
+		//TODO: Initiate the two ArrayLists in the variable declaration
 		clients = new ArrayList<ClientHandler>();
 		messages = new ArrayList<String>();
+		
 		try {
 			serverSocket = new ServerSocket(port);
 			run();
@@ -42,6 +66,8 @@ public class Server implements Runnable {
 		}
 	}
 	
+	
+	//TODO: Doesn't really need a run method, this could be moved in the constructor
 	@Override
 	public void run() {
 		while (true) {
@@ -57,12 +83,13 @@ public class Server implements Runnable {
 			}
 		}
 	}
-
+	
+	//TODO: Should return an ArrayList<String> rather than a JSONArray
 	public JSONArray getMessages() {
 		JSONArray jsArray = new JSONArray(messages);
 		return jsArray;
 	}
-
+	
 	public void pushMessages(String message) {
 		messages.add(message);
 		for (ClientHandler client : clients) {
@@ -82,34 +109,23 @@ public class Server implements Runnable {
 	}
 
 	class ClientHandler extends Thread {
+		/*
+		 * TODO:
+		 *	Okay, so one of the perks of having ClientHandler as an inner 
+		 *	class is the fact that all fields and methods of the Server 
+		 *	(including the private ones). You should remove the server field
+		 *	and make necessary changes to the issues that rise as a consequence.
+		 */
+		
 		private Socket socket;
 		private Server server;
-		private String username = null;
+		private String username;
+		
 		private InputStream IS;
 		private OutputStream OS;
 		private PrintWriter out;
+		//TODO: Add the BufferedReader as a field.
 		
-		@Override
-		public void run() {
-			while (true) {
-				String message;
-				try {
-					message = ((new BufferedReader(new InputStreamReader(IS)))
-							.readLine());
-					JSONObject jsonObj = new JSONObject(message);
-					handleMessage(jsonObj);
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-			}
-		}
-		
-
 		public ClientHandler(Socket socket, Server server) {
 			this.socket = socket;
 			this.server = server;
@@ -117,16 +133,42 @@ public class Server implements Runnable {
 			try {
 				IS = socket.getInputStream();
 				OS = socket.getOutputStream();
+				/*
+				 * TODO: We don't really need the input- and output stream. Instead,
+				 * initiate the BufferedReader and PrintWriter here.
+				 */
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
+		@Override
+		public void run() {
+			while (true) {
+				String message;
+				try {
+					//TODO: Clean
+					message = ((new BufferedReader(new InputStreamReader(IS)))
+							.readLine());
+					JSONObject jsonObj = new JSONObject(message);
+					handleMessage(jsonObj);
+				} 
+				catch (IOException e1) { /* TODO Auto-generated catch block */ } 
+				catch (JSONException e) { /* TODO Auto-generated catch block */ }
 
+			}
+		}
+		
 		public String getUsername() {
 			return username;
 		}
-
+		
+		/* 	TODO: Rename this to resolveRequest()
+		 * 	TODO: Use the protocol variables provided at the
+		 * 	beginning of the document to make this code more readable.
+		 *	TODO: Throw JSONExceptions 
+		 */
 		private void handleMessage(JSONObject message) {
 			try {
 				if (((message.getString("request")).toLowerCase())
@@ -146,7 +188,8 @@ public class Server implements Runnable {
 				e.printStackTrace();
 			}
 		}
-
+		
+		//TODO: Clean this up a bit
 		private void respondToLogin(String username) {
 			if(this.username != null) {
 				sendJSONObject(createRespond("login", "error", "already logged in"));
@@ -170,7 +213,8 @@ public class Server implements Runnable {
 				sendJSONObject(createRespond("login", "error", "username taken"));
 			}
 		}
-
+		
+		//TODO: Clean this up a bit
 		private void respondToMessage(String message) {
 			if (this.username != null) {
 				message = this.username + ": " + message;
@@ -181,7 +225,7 @@ public class Server implements Runnable {
 						"not logged in"));
 			}
 		}
-
+		
 		private void respondToLogout() {
 			if (this.username != null) {
 				sendJSONObject(createRespond("logout", "OK", ""));
@@ -198,7 +242,14 @@ public class Server implements Runnable {
 		private boolean isUsernameValid(String username) {
 			return server.isUsernameAvailable(username);
 		}
-
+		
+		/* TODO:
+		 * 
+		 * 	This isn't really a good solution, it would be better if only
+		 * 	the data strictly necessary was sent. Have each respondTo-method
+		 * 	wrap the data in JSON objects by themselves.
+		 * 
+		 */
 		private JSONObject createRespond(String respons, String status,
 				String context) {
 			JSONObject responsObject = new JSONObject();
@@ -212,7 +263,10 @@ public class Server implements Runnable {
 			}
 			return responsObject;
 		}
-
+		
+		/*
+		 * You probably won't be needing this.
+		 */
 		private void sendJSONObject(JSONObject respons) {
 			String responsString = respons.toString();
 			out = new PrintWriter(OS, true);
