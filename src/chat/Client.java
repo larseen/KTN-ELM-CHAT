@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 public class Client implements Runnable {
 	
@@ -83,15 +84,44 @@ public class Client implements Runnable {
 		private OutputStream outputStream;
 		
 		public void requestLogin(String username){
+			JSONObject request = new JSONObject();
+			try {
+				request.put("request", "login");
+				request.put("context", username);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 		
 		public void requestSendMessage(String message){
+			JSONObject request = new JSONObject();
+			try {
+				request.put("request", "message");
+				request.put("context", message);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 		public void requestLogout(){
+			JSONObject request = new JSONObject();
+			try {
+				request.put("request", "logout");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			
 		}
+		
+		private void sendRequest(JSONObject request) {
+			
+		}
+		
 		private void resolveResponse(JSONObject response){
 			
 		}

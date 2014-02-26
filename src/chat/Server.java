@@ -55,6 +55,10 @@ public class Server {
 		private Socket socket;
 		private String username;
 		
+		public ClientHandler(Socket socket) {
+			this.socket = socket;
+		}
+		
 		public void pushMessage(String message){
 			
 		}
