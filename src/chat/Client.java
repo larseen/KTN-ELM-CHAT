@@ -15,13 +15,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 public class Client {
 	
-	private String host ;
-	private int port;
+	private String host =  "78.91.2.158" ;
+	private int port = 8888;
 	
 	private String outputMessage = "I don't have a message yet!";
 	private String inputMessage;
 	private String userName;
-	private Thread mainThread;
 	private ServerHandler serverHandler;
 	private List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
 			, "connect ", "enter ");
@@ -38,14 +37,13 @@ public class Client {
 	
 	public Client() {
 		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-		//serverHandler = new ServerHandler(host, port);
+		serverHandler = new ServerHandler(host, port);
+		serverHandler.start();
 		
 		// Main while true loop
 		while(true){
 			getInputs(bf);
 			resolveInput(inputMessage);
-			System.out.println(userName);
-			System.out.println(outputMessage);
 		}
 	}
 	
@@ -56,7 +54,6 @@ public class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(inputMessage);
 	}
 
 	//Checks if we are trying to log in
@@ -65,6 +62,7 @@ public class Client {
 		for(int i=0; i< viableLogins.size();i++){
 			if(message.startsWith(viableLogins.get(i))){
 				userName = cropMessage(message, viableLogins.get(i));
+				serverHandler.requestLogin(userName);
 				return true;
 			}	
 		}
@@ -73,13 +71,14 @@ public class Client {
 	
 	// We are going to send a message here.
 	private void resolveMessage(String message){
-		outputMessage = message;
+		serverHandler.requestSendMessage(message);
 	}
 	
 	// Crops message
 	private String cropMessage(String message, String loginMessage){
 		return (String) message.subSequence(loginMessage.length(), message.length());
 	}
+	
 	// Checks if we are trying to log out
 	private boolean resolveLogout(){
 		for(int i = 0; i< viableLogouts.size();i++){
@@ -99,8 +98,9 @@ public class Client {
 			resolveMessage(input);			
 		}
 	}
+	
 	private void pushMessage(String message){
-		
+		System.out.println(message);
 	}
 	
 	
@@ -127,8 +127,6 @@ public class Client {
 				outputStream = socket.getOutputStream();
 				in = new BufferedReader(new InputStreamReader(inputStream));
 				out = new PrintWriter(outputStream, true);
-				
-				run();
 				
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
@@ -203,6 +201,7 @@ public class Client {
 		}
 		
 		private void resolveResponse(JSONObject r){
+
 			try {
 				String response = r.getString("response");
 				if (response.equals("login")){
@@ -212,8 +211,9 @@ public class Client {
 						pushMessage("Error: "+ r.getString("context"));
 					}
 					else if (status.equals("OK")){
+						pushMessage("Login granted, messages follow ...");
 						JSONArray a = r.getJSONArray("messages");
-						for (int i = 0; i<a.length(); i++){
+						for (int i = 0; i < a.length(); i++){
 							pushMessage(a.getString(i));
 						}
 					}
