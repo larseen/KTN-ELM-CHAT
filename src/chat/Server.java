@@ -113,8 +113,9 @@ public class Server implements Runnable {
 		 * TODO:
 		 *	Okay, so one of the perks of having ClientHandler as an inner 
 		 *	class is the fact that all fields and methods of the Server 
-		 *	(including the private ones). You should remove the server field
-		 *	and make necessary changes to the issues that rise as a consequence.
+		 *	(including the private ones) are accesible. You should remove 
+		 *	the server field and make necessary changes to the issues that
+		 *	 rise as a consequence.
 		 */
 		
 		private Socket socket;
