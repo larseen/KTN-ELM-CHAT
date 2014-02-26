@@ -135,7 +135,7 @@ public class Client {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+			sendRequest(request);
 		}
 		
 		public void requestSendMessage(String message){
@@ -147,8 +147,9 @@ public class Client {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+			sendRequest(request);
 		}
+		
 		public void requestLogout(){
 			JSONObject request = new JSONObject();
 			try {
@@ -158,11 +159,11 @@ public class Client {
 				e.printStackTrace();
 			}
 			
-			
+			sendRequest(request);
 		}
 		
 		private void sendRequest(JSONObject request) {
-			
+			out.println(request.toString());
 		}
 		
 		private void resolveResponse(JSONObject r){
@@ -202,6 +203,8 @@ public class Client {
 					
 				}
 				else if(response.equals("new message")){
+					
+					pushMessage(r.getString("context"));
 					
 				}
 				
