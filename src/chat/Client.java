@@ -11,6 +11,24 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * 								CLIENT CLASS
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * 	There are two classes in Client, namely Client and ServerHandler.
+ * 	Documentation for ServerHandler is found somewhere further down in the document.
+ * 
+ *	The Client is mainly taking input from the user and interpret what it means.
+ *	The message is fetched by using a buffered reader to get one message at a time from the user.
+ *	When the message is gathered, it will undergo three checks to classify if it either:
+ *		1) Is a login message.
+ *		2) Is a logout message.
+ *		3) Is an actual message the user wants to send.
+ *	When a message is classified as one of the above, the appropriate corresponding
+ *	method in ServerHandler is called upon.
+ *
+ *	The Client is always in a while(true) loop, initiated in the constructor.
+ *	In the constructor a new ServerHandler is spawned.
+ */
 public class Client {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 	 *							PROTOCOL VARIABLES
@@ -49,25 +67,97 @@ public class Client {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 	 *							COMMAND TRIGGERS
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-	 *	//TODO: Fill this BrOlav
+	 *	These are lists which contains the login and logout messages we are accepting.
+	 *	They are used in requestLogin and requestLogut respectively.
 	 */
-	//TODO: Change to private static final, also reconsider variable names
-	private List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
-			, "connect ", "enter ");
-	private List<String> viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out"
-			, "disconnect", "exit");
+	// Reconsider variable names
+	private static final List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
+			, "connect ", "enter "),
+			viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out",
+					"disconnect", "exit");
 	
-	private ServerHandler serverHandler;
+	/*  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 							SERVER HANDLER
+	 *  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 * 	Every client has a ServerHandler which will help the client send output and gather input 
+	 * (not from the keyboard, but rather messages from the main server).
+	 * 	serverHandler is called upon when the Client has classified what type of input the user gave it.  
+	 */
+	private static ServerHandler serverHandler;
 	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 								INITIALIZE VARIABLES
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	To get the server up and running we need to initialize variables concerning the 
+	 *	fundamental operation of the Client, such as a ServerHandler and a BufferedReader.
+	 *	As documented in the ServerHandler class, after initializing the ServerHandler,
+	 *	one must also start() it for it to function properly.
+	 *
+	 *	The Client will at all times sit in the while loop in its constructor.
+	 *	Here it is always trying to interpret what has been given to it, and if 
+	 *	it can do something with the input and then do it.
+	 */
 	public Client(String HOST, int PORT) {
 		
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		serverHandler = new ServerHandler(HOST, PORT);
 		serverHandler.start();
 		
+		// Main while loop.
 		while(true){
-			resolveInput(getKeyboardInput(in));
+			interpretInput(getKeyboardInput(in));
 		}
+	}
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 						MAIN BREAD AND BUTTER INPUTRESOLVER
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	Here, the Client has recognized it has been given input and is now trying to classify
+	 *	which of the three possible inputs the given command is, then do the appropriate action.
+	 *
+	 *	Firstly we check if the input is a login function, then whether it is a logout function.
+	 *	If the command in none of the above, it is a message the user wants to send.
+	 * 
+	 */
+	//TODO: Rename resolve functions to attempt, this one should be named interpretInput();
+	private void interpretInput(String input){
+		
+		/*
+		 * TODO: This should be restructured into something like this:
+		 * String command;
+		 * if((command = findLoginCommand(input)) != null) {
+		 * 		attemptLogin(input, command)
+		 * } else if((command = findLogoutCommand(input) != null) {
+		 * 		attemptLogout();
+		 * } else { attemptSendMessage(input); }
+		 * 
+		 * It's easier to see what's going on without having to dig
+		 * into code, and encapsulation is increased.
+		 * 
+		 */
+		// This section is not done yet
+		String command = findCommand(input);
+		if(command.equals(resolveLogin(input))){
+		}
+		else if(resolveLogout(input)){}
+		else{
+			resolveMessage(input);			
+		}
+	}
+	
+	// Needed for the solution Khrall proposed.
+	private String findCommand(String inputMessage){
+		for(String viableLogin: viableLogins){
+			if(inputMessage.startsWith(viableLogin)){
+				return viableLogin;
+			}
+		}
+		for(String viableLogout: viableLogouts){
+			if(inputMessage.startsWith(viableLogout)){
+				return viableLogout;
+			}
+		}
+		return "Beginning of message did not match logIN or logOUT commands";		
 	}
 	
 	/*
@@ -86,22 +176,21 @@ public class Client {
 	}
 
 	//Checks if we are trying to log in
-	private boolean resolveLogin(String message){
-		
+	private String resolveLogin(String inputMessage){
+		String userName;
 		/*
 		 * TODO: Cleanup
 		 * This is a mess, please clean this up, also rename variables
 		 * HINT: Use enhanced for-loops
 		 */
-		for(int i=0; i< viableLogins.size();i++){
-			if(message.startsWith(viableLogins.get(i))){
-				String username = cropMessage(message, viableLogins.get(i));
-				serverHandler.requestLogin(username);
-				return true;
-			}	
+		for (String viableLogin: viableLogins){
+			if(inputMessage.startsWith(viableLogin)){
+				userName = cropMessage(inputMessage, viableLogin);
+				serverHandler.requestLogin(userName);
+				return viableLogin;
+			}
 		}
-		
-		return false;
+		return "Not a login command";
 	}
 	
 	// We are going to send a message here.
@@ -116,45 +205,18 @@ public class Client {
 	}
 	
 	// Checks if we are trying to log out
-	private boolean resolveLogout(){
+	private String resolveLogout(String inputMessage){
 		
-		/*
-		 * TODO: Cleanup
-		 * Use enhanced for-loops
-		 */
-		String inputMessage = "This should be removed, input should be taken as argument";
-		for(int i = 0; i< viableLogouts.size();i++){
-			if (inputMessage.equals(viableLogouts.get(i))){
+		for(String viableLogout: viableLogouts){
+			if(inputMessage.equals(viableLogout)){
 				serverHandler.requestLogout();
-				return true;
+				return viableLogout;
 			}
+			
 		}
-		return false;
+		return "This was not a logout command";
 	}
 	
-	//TODO: Rename resolve functions to attempt, this one should be named interpretInput();
-	private void resolveInput(String input){
-		
-		/*
-		 * TODO: This should be restructured into something like this:
-		 * String command;
-		 * if((command = findLoginCommand(input)) != null) {
-		 * 		attemptLogin(input, command)
-		 * } else if((command = findLogoutCommand(input) != null) {
-		 * 		attemptLogout();
-		 * } else { attemptSendMessage(input); }
-		 * 
-		 * It's easier to see what's going on without having to dig
-		 * into code, and encapsulation is increased.
-		 * 
-		 */
-		
-		if(resolveLogin(input)){}
-		else if(resolveLogout()){}
-		else{
-			resolveMessage(input);			
-		}
-	}
 	
 	private void pushMessage(String message){
 		System.out.println(message);
