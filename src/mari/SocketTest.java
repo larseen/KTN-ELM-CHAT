@@ -1,4 +1,4 @@
-package Heidi;
+package mari;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,16 +10,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Sockettest {
+public class SocketTest {
 
-	
-	class Socketsender{
+	class SocketSender{
 		InputStream IS;
 		OutputStream OS;
 		PrintWriter out;
 		Socket sender;
 		ServerSocket server;
-		public Socketsender(int port){
+		public SocketSender(int port){
 			try {
 				server = new ServerSocket(port);
 				sender = server.accept();
@@ -27,7 +26,6 @@ public class Sockettest {
 				OS = sender.getOutputStream();
 				out = new PrintWriter(OS, true);
 				out.println("hei");
-				
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -36,12 +34,12 @@ public class Sockettest {
 		}
 	}
 	
-	class Socketreceiver{
+	class SocketReceiver{
 		Socket receiver;
 		InputStream IS;
 		OutputStream OS;
 		BufferedReader in;
-		public Socketreceiver(String host, int port){
+		public SocketReceiver(String host, int port){
 			try {
 				receiver = new Socket(host, port);
 				IS = receiver.getInputStream();
@@ -56,13 +54,12 @@ public class Sockettest {
 		}
 	}
 	
-	public Sockettest(){
-		new Socketreceiver("78.91.27.86",8888);
+	public SocketTest(){
+		new SocketSender(8888);
 	}
 	
+	
 	public static void main(String[] args) {
-		new Sockettest();
-
+		new SocketTest();
 	}
-
 }

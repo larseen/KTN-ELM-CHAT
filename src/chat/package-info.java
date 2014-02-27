@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author Raymi
- *
- */
-package chat;
