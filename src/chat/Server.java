@@ -127,7 +127,21 @@ public class Server implements Runnable {
 			return username;
 		}
 
-		private void handleMessage(JSONObject message) {
+		private void handleMessage(JSONObject message) throws JSONException {
+			String request = (message.getString("request")).toLowerCase();
+			switch(request) {
+			case "login":
+				
+				break;
+			case "logout":
+				
+				break;
+				
+			case "message":
+				
+				break;
+			}
+			
 			try {
 				if (((message.getString("request")).toLowerCase())
 						.equals("message")) {
@@ -192,7 +206,15 @@ public class Server implements Runnable {
 		}
 
 		public void pushMessage(String message) {
-			sendJSONObject(createRespond("new message", "", message));
+			JSONObject responsObject = new JSONObject();
+			try {
+				responsObject.put("response", "new message");
+				responsObject.put("context", message);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			sendJSONObject(responsObject);
 		}
 
 		private boolean isUsernameValid(String username) {
