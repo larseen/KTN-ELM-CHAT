@@ -144,7 +144,7 @@ public class Client {
 		else if(commandSet.compareCommands("logout")){
 			attemptLogout();
 		}
-		else{
+		else{C
 			attemptSendMessage(input);			
 		}
 	}
