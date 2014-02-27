@@ -70,7 +70,7 @@ public class Client {
 	 *	These are lists which contains the login and logout messages we are accepting.
 	 *	They are used in requestLogin and requestLogut respectively.
 	 */
-	// Reconsider variable names
+	// TODO: Reconsider variable names
 	private static final List<String> viableLogins = Arrays.asList("login ", "log in ", "signin ", "sign in "
 			, "connect ", "enter "),
 			viableLogouts = Arrays.asList("logout", "log out", "signout", "sign out",
@@ -119,55 +119,20 @@ public class Client {
 	 *	If the command in none of the above, it is a message the user wants to send.
 	 * 
 	 */
-	//TODO: Rename resolve functions to attempt, this one should be named interpretInput();
 	private void interpretInput(String input){
 		
-		/*
-		 * TODO: This should be restructured into something like this:
-		 * String command;
-		 * if((command = findLoginCommand(input)) != null) {
-		 * 		attemptLogin(input, command)
-		 * } else if((command = findLogoutCommand(input) != null) {
-		 * 		attemptLogout();
-		 * } else { attemptSendMessage(input); }
-		 * 
-		 * It's easier to see what's going on without having to dig
-		 * into code, and encapsulation is increased.
-		 * 
-		 */
-		
+		//TODO: Turn into a switch
 		// This section is not done yet
-		CommandResponse commandSet = findCommandAndCommandType(input);
-		if(commandSet.compareCommands("login")){
-			attempteLogin(input, commandSet.getCommand());
+		InputCommand command = new InputCommand(input);
+		if(command.isCommand("login")){
+			attemptLogin(input, command.getCommand());
 		}
-		else if(commandSet.compareCommands("logout")){
+		else if(command.isCommand("logout")){
 			attemptLogout();
 		}
 		else{
 			attemptSendMessage(input);			
 		}
-	}
-	
-	/*	I(shorm) THINK this is needed for the solution Khrall proposed.
-	*	At the moment I can see this might end up causing some nullReferenceErrors,
-	*	but dont be square, these are easy to straighten up! 
-	*/
-	private CommandResponse findCommandAndCommandType(String inputMessage){
-		for(String viableLogin: viableLogins){
-			if(inputMessage.startsWith(viableLogin)){
-				CommandResponse commandSet = new CommandResponse(viableLogin, "login");
-				return commandSet;
-			}
-		}
-		
-		for(String viableLogout: viableLogouts){
-			if(inputMessage.startsWith(viableLogout)){
-				CommandResponse commandSet = new CommandResponse(viableLogout, "logout");
-				return commandSet;
-			}
-		}
-		return null;
 	}
 	
 	/*
@@ -186,7 +151,7 @@ public class Client {
 	}
 
 	//	Tries to log in
-	private void attempteLogin(String inputMessage, String loginCommand){
+	private void attemptLogin(String inputMessage, String loginCommand){
 		String userName;
 		userName = findUserName(inputMessage, loginCommand);
 		serverHandler.requestLogin(userName);
@@ -216,17 +181,35 @@ public class Client {
 	/* 	If this is heavily unneeded/a bad way to do it, then my all means kill the structure :)
 	 *	Also, the name is pretty shit.
 	 */
-	class CommandResponse{
+	class InputCommand{
 		private String command, typeOfCommand;
 		
-		public CommandResponse(String command, String typeOfCommand){
-			this.command=command;
-			this.typeOfCommand=typeOfCommand;
+		public InputCommand(String input){
+			for(String viableLogin: viableLogins){
+				if(input.startsWith(viableLogin)){
+					this.command = viableLogin;
+					this.typeOfCommand = "login";
+					return;
+				}
+			}
+			
+			for(String viableLogout: viableLogouts){
+				if(input.startsWith(viableLogout)){
+					this.command = viableLogout;
+					this.typeOfCommand = "logout";
+					return;
+				}
+			}
+			
+			this.command = null;
+			this.typeOfCommand = "message";
 		}
+		
 		public String getCommand(){
 			return command;
 		}
-		public boolean compareCommands(String staticCommand){
+		
+		public boolean isCommand(String staticCommand){
 			if(command.equals(staticCommand)){
 				return true;
 			}
