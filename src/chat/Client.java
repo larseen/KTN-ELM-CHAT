@@ -135,29 +135,39 @@ public class Client {
 		 * into code, and encapsulation is increased.
 		 * 
 		 */
+		
 		// This section is not done yet
-		String command = findCommand(input);
-		if(command.equals(resolveLogin(input))){
+		CommandResponse commandSet = findCommandAndCommandType(input);
+		if(commandSet.compareCommands("login")){
+			attempteLogin(input, commandSet.getCommand());
 		}
-		else if(resolveLogout(input)){}
+		else if(commandSet.compareCommands("logout")){
+			attemptLogout();
+		}
 		else{
-			resolveMessage(input);			
+			attemptSendMessage(input);			
 		}
 	}
 	
-	// Needed for the solution Khrall proposed.
-	private String findCommand(String inputMessage){
+	/*	I(shorm) THINK this is needed for the solution Khrall proposed.
+	*	At the moment I can see this might end up causing some nullReferenceErrors,
+	*	but dont be square, these are easy to straighten up! 
+	*/
+	private CommandResponse findCommandAndCommandType(String inputMessage){
 		for(String viableLogin: viableLogins){
 			if(inputMessage.startsWith(viableLogin)){
-				return viableLogin;
+				CommandResponse commandSet = new CommandResponse(viableLogin, "login");
+				return commandSet;
 			}
 		}
+		
 		for(String viableLogout: viableLogouts){
 			if(inputMessage.startsWith(viableLogout)){
-				return viableLogout;
+				CommandResponse commandSet = new CommandResponse(viableLogout, "logout");
+				return commandSet;
 			}
 		}
-		return "Beginning of message did not match logIN or logOUT commands";		
+		return null;
 	}
 	
 	/*
@@ -175,52 +185,63 @@ public class Client {
 		}
 	}
 
-	//Checks if we are trying to log in
-	private String resolveLogin(String inputMessage){
+	//	Tries to log in
+	private void attempteLogin(String inputMessage, String loginCommand){
 		String userName;
-		/*
-		 * TODO: Cleanup
-		 * This is a mess, please clean this up, also rename variables
-		 * HINT: Use enhanced for-loops
-		 */
-		for (String viableLogin: viableLogins){
-			if(inputMessage.startsWith(viableLogin)){
-				userName = cropMessage(inputMessage, viableLogin);
-				serverHandler.requestLogin(userName);
-				return viableLogin;
-			}
-		}
-		return "Not a login command";
+		userName = findUserName(inputMessage, loginCommand);
+		serverHandler.requestLogin(userName);
 	}
 	
 	// We are going to send a message here.
-	private void resolveMessage(String message){
+	private void attemptSendMessage(String message){
 		serverHandler.requestSendMessage(message);
 	}
 	
-	// Crops message
-	//TODO: Consider renaming this function
-	private String cropMessage(String message, String loginMessage){
-		return (String) message.subSequence(loginMessage.length(), message.length());
+	// Finds username given the original message and the appropriate loginCommand.
+	private String findUserName(String message, String loginCommand){
+		return (String) message.subSequence(loginCommand.length(), message.length());
 	}
 	
-	// Checks if we are trying to log out
-	private String resolveLogout(String inputMessage){
-		
-		for(String viableLogout: viableLogouts){
-			if(inputMessage.equals(viableLogout)){
-				serverHandler.requestLogout();
-				return viableLogout;
-			}
-			
-		}
-		return "This was not a logout command";
+	// Attempts to log out
+	private void attemptLogout(){
+		serverHandler.requestLogout();
 	}
 	
 	
 	private void pushMessage(String message){
 		System.out.println(message);
 	}
+	
+	
+	/* 	If this is heavily unneeded/a bad way to do it, then my all means kill the structure :)
+	 *	Also, the name is pretty shit.
+	 */
+	class CommandResponse{
+		private String command, typeOfCommand;
+		
+		public CommandResponse(String command, String typeOfCommand){
+			this.command=command;
+			this.typeOfCommand=typeOfCommand;
+		}
+		public String getCommand(){
+			return command;
+		}
+		public boolean compareCommands(String staticCommand){
+			if(command.equals(staticCommand)){
+				return true;
+			}
+			return false;	
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 	 *							SERVER HANDLER
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
