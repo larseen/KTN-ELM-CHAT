@@ -110,7 +110,7 @@ public class Client {
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	 * 						MAIN BREAD AND BUTTER INPUTRESOLVER
+	 * 						MAIN BREAD AND BUTTER INPUTINTERPRETER
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 *	Here, the Client has recognized it has been given input and is now trying to classify
 	 *	which of the three possible inputs the given command is, then do the appropriate action.
@@ -136,51 +136,99 @@ public class Client {
 		}
 	}
 	
-	/*
-	 * CHANGES
-	 * getInputs renamed to getKeyboardInput
-	 * now returns String
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 					READING INPUT FROM THE USER
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	InterpretInput needs to get the actual input form somewhere,
+	 *	this is where getKeyboardInput is called.
+	 *	The method reads line by line from a BufferedReader.
+	 *	If something goes wrong it prints an errormessage to the user
+	 *	and terminates the program. 
 	 */
 	public String getKeyboardInput(BufferedReader in){
 		try {
 			return in.readLine();
 		} catch (IOException e) {
-			//TODO: Should respond with appropriate message (use pushMessage())
+			pushMessage("Something went wrong when trying to read input");
 			e.printStackTrace();
 			return null;
 		}
 	}
-
-	//	Tries to log in
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	 * 						LOGIN SEQUENCE
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 	Here, we already figured out that the inputmessage is a login command.
+	 * 	This we did in interpretInput.
+	 * 	
+	 * 	attemptLogin finds the desired username and calls the serverhandler's
+	 *  requestLogin with said username. 
+	 */
 	private void attemptLogin(String inputMessage, String loginCommand){
 		String userName;
 		userName = findUserName(inputMessage, loginCommand);
 		serverHandler.requestLogin(userName);
 	}
 	
-	// We are going to send a message here.
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 						SENDING A MESSAGE
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	interpretInput concluded that the given input is a message to be
+	 *	sent to other users. attemptSendMessage is then called with the 
+	 *	given message and calls the serverhandler's 
+	 *	requestSendMessage-method with said message.
+	 */
 	private void attemptSendMessage(String message){
 		serverHandler.requestSendMessage(message);
 	}
 	
-	// Finds username given the original message and the appropriate loginCommand.
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *						FINDING A USERNAME
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 	findUserName is called in attemptLogin to get a sensible username 
+	 * 	out of the command.
+	 * 	
+	 * 	findUserName is really straightforward, it gets the original message
+	 * 	with the corresponding command, crops the message so it only contains 
+	 * 	the desired username.
+	 */
 	private String findUserName(String message, String loginCommand){
 		return (String) message.subSequence(loginCommand.length(), message.length());
 	}
 	
-	// Attempts to log out
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 						USER WANTS TO LOG OUT
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	If interpretInput concluded that the user wants to log out, attemptLogout
+	 *	is called.
+	 *	The method tries to log out, using the serverhandler's method
+	 *	'requestLogout()'.
+	 */
 	private void attemptLogout(){
 		serverHandler.requestLogout();
 	}
 	
-	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * 						SIMPLE METHOD FOR PRINTING A MESSAGE
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	If we want to print a message to the user, pushMessage will take
+	 *	care of it. This includes, but is not limited to sending errormessages.
+	 */
 	private void pushMessage(String message){
 		System.out.println(message);
 	}
 	
 	
-	/* 	If this is heavily unneeded/a bad way to do it, then my all means kill the structure :)
-	 *	Also, the name is pretty shit.
+	
+	
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *			REPRESENTING A COMMAND AND IT'S TYPE AS ONE OBJECT
+	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 *	If we want to return a command, wether it be a login or logout, 
+	 *	we can also represent it with its type('logout' or 'login').
+	 *	InputCommand is made to do just this. It also finds the type
+	 *	of command in a given input, it does not do anything more.
+	 *	Well, it can compare two commands..
 	 */
 	class InputCommand{
 		private String command, typeOfCommand;
