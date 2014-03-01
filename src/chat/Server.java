@@ -294,6 +294,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -313,33 +314,26 @@ public class Server implements Runnable {
 		STATUS_FIELD = "status",
 		CONTEXT_FIELD = "context";
 	
-	private static final String[] COMMANDS = {"login", "logout", "message", "new message"};
-	private static final int LOGIN = 0, LOGOUT = 1, MESSAGE = 2, NEW_MESSAGE = 3;
+	private static final String[] COMMANDS = {"login", "logout", "message", "new message", "send message"};
+	private static final int LOGIN = 0, LOGOUT = 1, MESSAGE = 2, NEW_MESSAGE = 3, SEND_MESSAGE = 4;
 	
 	private static final String[] STATUSES = {"error", "OK"};
 	private static final int ERROR = 0, OK = 1;
 	
-	
+	private static final String[] ERRORS = {"User already logged in", "Username already taken", "Not logged inn"};
+	private static final int ALREADY_LOGGED_IN = 0, USERNAME_TAKEN = 1, NOT_LOGGED_IN = 2;
 	
 	private ServerSocket serverSocket;
-	private Integer port;
-	private ArrayList<ClientHandler> clients;
-	private ArrayList<String> messages;
+	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
+	private ArrayList<String> messages = new ArrayList<String>();
 	
 	public static void main(String[] args) {
-		new Server(8888);
+		new Server();
 	}
 	
-	public Server(Integer port) {
-		//TODO: Do we really need this field?
-		this.port = port;
-		
-		//TODO: Initiate the two ArrayLists in the variable declaration
-		clients = new ArrayList<ClientHandler>();
-		messages = new ArrayList<String>();
-		
+	public Server() {		
 		try {
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket();
 			run();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -358,7 +352,7 @@ public class Server implements Runnable {
 			System.out.println(clients);
 			ClientHandler client;
 			try {
-				client = new ClientHandler(serverSocket.accept(), this);
+				client = new ClientHandler(serverSocket.accept());
 				clients.add(client);
 				client.start();
 			} catch (IOException e) {
@@ -369,12 +363,12 @@ public class Server implements Runnable {
 	}
 	
 	//TODO: Should return an ArrayList<String> rather than a JSONArray
-	public JSONArray getMessages() {
+	public ArrayList<String> getMessages() {
 		JSONArray jsArray = new JSONArray(messages);
 		return jsArray;
 	}
 	
-	public void pushMessages(String message) {
+	public void pushMessages(String message) throws JSONException {
 		messages.add(message);
 		for (ClientHandler client : clients) {
 			if(client.username != null) {
@@ -393,17 +387,8 @@ public class Server implements Runnable {
 	}
 
 	class ClientHandler extends Thread {
-		/*
-		 * TODO:
-		 *	Okay, so one of the perks of having ClientHandler as an inner 
-		 *	class is the fact that all fields and methods of the Server 
-		 *	(including the private ones) are accesible. You should remove 
-		 *	the server field and make necessary changes to the issues that
-		 *	 rise as a consequence.
-		 */
 		
 		private Socket socket;
-		private Server server;
 		private String username;
 		
 		private InputStream IS;
@@ -411,9 +396,8 @@ public class Server implements Runnable {
 		private PrintWriter out;
 		//TODO: Add the BufferedReader as a field.
 		
-		public ClientHandler(Socket socket, Server server) {
+		public ClientHandler(Socket socket) {
 			this.socket = socket;
-			this.server = server;
 			
 			try {
 				IS = socket.getInputStream();
@@ -441,144 +425,90 @@ public class Server implements Runnable {
 				} 
 				catch (IOException e1) { /* TODO Auto-generated catch block */ } 
 				catch (JSONException e) { /* TODO Auto-generated catch block */ }
-
 			}
 		}
 		
 		public String getUsername() {
 			return username;
 		}
-<<<<<<< HEAD
 
 		private void handleMessage(JSONObject message) throws JSONException {
-			String request = (message.getString("request")).toLowerCase();
-			switch(request) {
-			case "login":
-				
+			String request = message.getString(REQUEST_FIELD);
+		    Integer requestTypeIndex = Arrays.asList(COMMANDS).indexOf(request);
+			switch(requestTypeIndex) {
+			case LOGIN:
+				respondToLogin(message.getString("context"));
 				break;
-			case "logout":
-				
+			case LOGOUT:
+				respondToLogout();
 				break;
-				
-			case "message":
-				
+			case MESSAGE:
+				respondToMessage(message.getString("context"));
 				break;
-			}
-			
-=======
-		
-		/* 	TODO: Rename this to resolveRequest()
-		 * 	TODO: Use the protocol variables provided at the
-		 * 	beginning of the document to make this code more readable.
-		 *	TODO: Throw JSONExceptions 
-		 */
-		private void handleMessage(JSONObject message) {
->>>>>>> FETCH_HEAD
-			try {
-				if (((message.getString("request")).toLowerCase())
-						.equals("message")) {
-					respondToMessage(message.getString("context"));
-				}
-				if (((message.getString("request")).toLowerCase())
-						.equals("logout")) {
-					respondToLogout();
-				}
-				if (((message.getString("request")).toLowerCase())
-						.equals("login")) {
-					respondToLogin(message.getString("context"));
-				}
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		
-		//TODO: Clean this up a bit
-		private void respondToLogin(String username) {
+		private void respondToLogin(String username) throws JSONException {
+			JSONObject responsObject = new JSONObject();
 			if(this.username != null) {
-				sendJSONObject(createRespond("login", "error", "already logged in"));
+				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
+				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
+				responsObject.put(CONTEXT_FIELD, ERRORS[ALREADY_LOGGED_IN]);
 			}
 			
 			else if (isUsernameValid(username)) {
 				this.username = username;
-				JSONObject responsObject = new JSONObject();
-				try {
-					responsObject.put("response", "login");
-					responsObject.put("status", "OK");
-					responsObject.put("messages", server.getMessages());
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				System.out.println(responsObject.toString());
-				System.out.println(server.getMessages());
-				sendJSONObject(responsObject);
+				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
+				responsObject.put(STATUS_FIELD, STATUSES[OK]);
+				responsObject.put(CONTEXT_FIELD, getMessages());
 			} else {
-				sendJSONObject(createRespond("login", "error", "username taken"));
+				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
+				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
+				responsObject.put(CONTEXT_FIELD, ERRORS[USERNAME_TAKEN]);
 			}
+			sendJSONObject(responsObject);
 		}
 		
-		//TODO: Clean this up a bit
-		private void respondToMessage(String message) {
+		private void respondToMessage(String message) throws JSONException {
+			JSONObject responsObject = new JSONObject();
 			if (this.username != null) {
 				message = this.username + ": " + message;
-				server.pushMessages(message);
-				sendJSONObject(createRespond("send message", "OK", ""));
+				pushMessages(message);
+				responsObject.put(RESPONSE_FIELD, COMMANDS[SEND_MESSAGE]);
+				responsObject.put(STATUS_FIELD, STATUSES[OK]);
 			} else {
-				sendJSONObject(createRespond("message", "error",
-						"not logged in"));
+				responsObject.put(RESPONSE_FIELD, COMMANDS[MESSAGE]);
+				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
+				responsObject.put(CONTEXT_FIELD, ERRORS[NOT_LOGGED_IN]);
 			}
+			sendJSONObject(responsObject);
 		}
 		
-		private void respondToLogout() {
+		private void respondToLogout() throws JSONException {
+			JSONObject responsObject = new JSONObject();
 			if (this.username != null) {
-				sendJSONObject(createRespond("logout", "OK", ""));
+				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGOUT]);
+				responsObject.put(STATUS_FIELD, STATUSES[OK]);
 				this.username = null;
 			} else {
-				sendJSONObject(createRespond("logout", "error", "not logged in"));
-			}
-		}
-
-		public void pushMessage(String message) {
-			JSONObject responsObject = new JSONObject();
-			try {
-				responsObject.put("response", "new message");
-				responsObject.put("context", message);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGOUT]);
+				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
+				responsObject.put(CONTEXT_FIELD, ERRORS[NOT_LOGGED_IN]);
 			}
 			sendJSONObject(responsObject);
 		}
 
-		private boolean isUsernameValid(String username) {
-			return server.isUsernameAvailable(username);
-		}
-		
-		/* TODO:
-		 * 
-		 * 	This isn't really a good solution, it would be better if only
-		 * 	the data strictly necessary was sent. Have each respondTo-method
-		 * 	wrap the data in JSON objects by themselves.
-		 * 
-		 */
-		private JSONObject createRespond(String respons, String status,
-				String context) {
+		public void pushMessage(String message) throws JSONException {
 			JSONObject responsObject = new JSONObject();
-			try {
-				responsObject.put("response", respons);
-				responsObject.put("status", status);
-				responsObject.put("context", context);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return responsObject;
+			responsObject.put(RESPONSE_FIELD, COMMANDS[NEW_MESSAGE]);
+			responsObject.put(CONTEXT_FIELD, message);
+			sendJSONObject(responsObject);
+		}
+
+		private boolean isUsernameValid(String username) {
+			return isUsernameAvailable(username);
 		}
 		
-		/*
-		 * You probably won't be needing this.
-		 */
 		private void sendJSONObject(JSONObject respons) {
 			String responsString = respons.toString();
 			out = new PrintWriter(OS, true);
