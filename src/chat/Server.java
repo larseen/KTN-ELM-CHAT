@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -44,12 +45,14 @@ public class Server implements Runnable {
 	private ArrayList<String> messages = new ArrayList<String>();
 	
 	public static void main(String[] args) {
-		new Server();
+		new Server(Integer.valueOf(args[0]));
 	}
 	
-	public Server() {		
+	public Server(int port) {		
 		try {
-			serverSocket = new ServerSocket();
+			String IP = InetAddress.getLocalHost().getHostAddress();
+			System.out.println("Server running on ip: "+IP+":"+port);
+			serverSocket = new ServerSocket(port);
 			run();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -187,6 +190,7 @@ public class Server implements Runnable {
 		private void respondToMessage(String message) throws JSONException {
 			JSONObject responsObject = new JSONObject();
 			if (this.username != null) {
+				System.out.println("Got this: "+message);
 				message = this.username + ": " + message;
 				pushMessages(message);
 				responsObject.put(RESPONSE_FIELD, COMMANDS[SEND_MESSAGE]);

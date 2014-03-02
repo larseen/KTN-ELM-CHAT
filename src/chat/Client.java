@@ -130,7 +130,7 @@ public class Client {
 			case "logout":
 				attemptLogout();
 				break;
-			case "":
+			case "message":
 				attemptSendMessage(input);
 				break;
 		}
@@ -489,6 +489,10 @@ public class Client {
 			out.println(request.toString());
 		}
 
+	}
+	
+	public static void main(String[] args) {
+		new Client(args[0], Integer.valueOf(args[1]));
 	}
 	
 }
