@@ -1,0 +1,54 @@
+<html>
+<head>
+</head>
+<title>KTN ELM Chat</title>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="css/nanoscroller.css">
+<link rel="stylesheet" href="css/style.css">
+<body>
+
+<header>
+	<div class="content">
+		<span>Welcome stranger, to KTN ELM Chat ...</span>
+	</div>
+</header>
+
+<div class="container">
+<div id="app-description" class"row">
+	<h2 class="description">Welcome to KTN ELM Chat, easily the best chat ever made!</h2>
+</div>
+
+<div class="row">
+	<div class="col-md-3">
+		<table id="users" class="table">
+			<tr><td>User 1</td></tr>
+			<tr><td>User 2</td></tr>
+		</table>
+	</div>
+	<div class="col-md-9">
+		<div id="chat-header"></div>
+		<div id="chat-area" class="nano">
+			<div class="nano-content">
+				<ul>
+					<!--<li username="system" userid="0"><span class="name">System:</span>Attempting to connect to server, please wait ...</li>-->
+				</ul>
+			</div>
+		</div>
+		<form id="chat-input">
+			<input />
+			<button>Send</button>
+		</form>
+	</div>
+</div>
+
+</div>
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery.nanoscroller.min.js"></script>
+<script src="js/socket.io.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

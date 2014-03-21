@@ -1,58 +1,52 @@
 package chat;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+
 public class Server implements Runnable {
-	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-	 *							PROTOCOL VARIABLES
-	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  
-	 *	These variables are in place in order to make the implementation
-	 *	of the protocol more readable to other people. Also, it enables
-	 *	the protocol to be edited with greater ease.
-	 */
-	private static final String
-		RESPONSE_FIELD = "response",
-		REQUEST_FIELD = "request",
-		STATUS_FIELD = "status",
-		CONTEXT_FIELD = "context";
-	
-	private static final String[] COMMANDS = {"login", "logout", "message", "new message", "send message"};
-	private static final int LOGIN = 0, LOGOUT = 1, MESSAGE = 2, NEW_MESSAGE = 3, SEND_MESSAGE = 4;
-	
-	private static final String[] STATUSES = {"error", "OK"};
-	private static final int ERROR = 0, OK = 1;
-	
-	private static final String[] ERRORS = {"User already logged in", "Username already taken", "Not logged inn"};
-	private static final int ALREADY_LOGGED_IN = 0, USERNAME_TAKEN = 1, NOT_LOGGED_IN = 2;
 	
 	private ServerSocket serverSocket;
+	private final Server server;
+	SocketIOServer jsServer;
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private ArrayList<String> messages = new ArrayList<String>();
+	private boolean alive = true;
 	
 	public static void main(String[] args) {
 		new Server(Integer.valueOf(args[0]));
 	}
 	
 	public Server(int port) {		
+		
+		server = this;
+		(new ServerManager(this)).start();
+		
 		try {
+			// FINNER IP
 			String IP = InetAddress.getLocalHost().getHostAddress();
-			System.out.println("Server running on ip: "+IP+":"+port);
+			
+			// SETTER JAVASCRIPT SERVER
+			startJavaScriptServer(port, IP);
+
 			serverSocket = new ServerSocket(port);
+			
+			System.out.println("Server running on ip: "+IP+":"+port);
 			run();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -67,19 +61,39 @@ public class Server implements Runnable {
 	//TODO: Doesn't really need a run method, this could be moved in the constructor
 	@Override
 	public void run() {
-		while (true) {
+		
+		
+		while (alive) {
 			System.out.println(clients);
 			ClientHandler client;
 			try {
-				client = new ClientHandler(serverSocket.accept());
+				Socket socket = serverSocket.accept();
+				int ID = generateID();
+				client = new JavaClientHandler(this, socket, ID);
 				clients.add(client);
 				client.start();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Socket was forcibly shut down");
 			}
 		}
+		
+		cleanup();
 	}
+	
+	public void stop() {
+		this.alive = false;
+		jsServer.stop();
+		try { serverSocket.close(); } 
+		catch (IOException e) { e.printStackTrace(); }	
+	}
+	
+	private void cleanup() {
+		System.out.println("Cleaning up ...");
+		//TODO: CLEAN UP WHEN SHUTS DOWN
+		for(ClientHandler c : clients) { c.terminate(); }
+		System.out.println("All done!");
+	}
+	
 	
 	//TODO: Should return an ArrayList<String> rather than a JSONArray
 	public ArrayList<String> getMessages() {
@@ -89,7 +103,7 @@ public class Server implements Runnable {
 	public void pushMessages(String message) throws JSONException {
 		messages.add(message);
 		for (ClientHandler client : clients) {
-			if(client.username != null) {
+			if(client.getUsername() != null) {
 				client.pushMessage(message);
 			}
 		}
@@ -103,146 +117,54 @@ public class Server implements Runnable {
 		}
 		return true;
 	}
-
-	class ClientHandler extends Thread {
+	
+	// TODO: CREATE FUNCTION
+	public int generateID() {
+		return -1;
+	}
+	
+	private void startJavaScriptServer(int port, String host) {
+		Configuration config = new Configuration();
+		config.setHostname(host);
+		config.setPort(port+1);
+		jsServer = new SocketIOServer(config);
+		System.out.println("Javascript server running on ip: "+host+":"+(port+1));
+		final HashMap<SocketIOClient, JavaScriptClientHandler> jsHandlers = new HashMap<SocketIOClient, JavaScriptClientHandler>();
 		
-		private Socket socket;
-		private String username;
+		jsServer.addConnectListener(new ConnectListener() {
+	        public void onConnect(SocketIOClient client) {
+	        	System.out.println(clients);
+	        	System.out.println("Got someone!");
+	        	int ID = generateID();
+	        	JavaScriptClientHandler handler = new JavaScriptClientHandler(server, client, ID);
+				jsHandlers.put(client, handler);
+				clients.add(handler);
+	        }
+	    });
 		
-		private InputStream IS;
-		private OutputStream OS;
-		private PrintWriter out;
-		//TODO: Add the BufferedReader as a field.
+		jsServer.addDisconnectListener(new DisconnectListener() {
+	        public void onDisconnect(SocketIOClient client) {
+	        	JavaScriptClientHandler handler = jsHandlers.get(client);
+	        	
+	        	// TODO: Remove from both map and list
+	        	jsHandlers.remove(client);
+	        	//int ID = handler.getID();
+	        	System.out.println("Dropped one");
+	        }
+	    });
 		
-		public ClientHandler(Socket socket) {
-			this.socket = socket;
-			
-			try {
-				IS = socket.getInputStream();
-				OS = socket.getOutputStream();
-				/*
-				 * TODO: We don't really need the input- and output stream. Instead,
-				 * initiate the BufferedReader and PrintWriter here.
-				 */
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		jsServer.addMessageListener(new DataListener<String>() {
+	        public void onData(SocketIOClient client, String jsonString, AckRequest ackRequest) {
+	        	try {
+					JavaScriptClientHandler handler = jsHandlers.get(client);
+					handler.handleMessage(new JSONObject(jsonString));
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+	    });
 		
-		@Override
-		public void run() {
-			while (true) {
-				String message;
-				try {
-					//TODO: Clean
-					message = ((new BufferedReader(new InputStreamReader(IS)))
-							.readLine());
-					JSONObject jsonObj = new JSONObject(message);
-					handleMessage(jsonObj);
-				} 
-				catch (IOException e1) { /* TODO Auto-generated catch block */ } 
-				catch (JSONException e) { /* TODO Auto-generated catch block */ }
-			}
-		}
-		
-		public String getUsername() {
-			return username;
-		}
-
-		private void handleMessage(JSONObject message) throws JSONException {
-			String request = message.getString(REQUEST_FIELD);
-		    Integer requestTypeIndex = Arrays.asList(COMMANDS).indexOf(request);
-			switch(requestTypeIndex) {
-			case LOGIN:
-				respondToLogin(message.getString("context"));
-				break;
-			case LOGOUT:
-				respondToLogout();
-				break;
-			case MESSAGE:
-				respondToMessage(message.getString("context"));
-				break;
-			}
-		}
-		
-		private void respondToLogin(String username) throws JSONException {
-			JSONObject responsObject = new JSONObject();
-			if(this.username != null) {
-				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
-				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
-				responsObject.put(CONTEXT_FIELD, ERRORS[ALREADY_LOGGED_IN]);
-			}
-			
-			else if (isUsernameValid(username)) {
-				this.username = username;
-				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
-				responsObject.put(STATUS_FIELD, STATUSES[OK]);
-				responsObject.put(CONTEXT_FIELD, new JSONArray(getMessages()));
-			} else {
-				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGIN]);
-				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
-				responsObject.put(CONTEXT_FIELD, ERRORS[USERNAME_TAKEN]);
-			}
-			sendJSONObject(responsObject);
-		}
-		
-		private void respondToMessage(String message) throws JSONException {
-			JSONObject responsObject = new JSONObject();
-			if (this.username != null) {
-				System.out.println("Got this: "+message);
-				message = this.username + ": " + message;
-				pushMessages(message);
-				responsObject.put(RESPONSE_FIELD, COMMANDS[SEND_MESSAGE]);
-				responsObject.put(STATUS_FIELD, STATUSES[OK]);
-			} else {
-				responsObject.put(RESPONSE_FIELD, COMMANDS[MESSAGE]);
-				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
-				responsObject.put(CONTEXT_FIELD, ERRORS[NOT_LOGGED_IN]);
-			}
-			sendJSONObject(responsObject);
-		}
-		
-		private void respondToLogout() throws JSONException {
-			JSONObject responsObject = new JSONObject();
-			if (this.username != null) {
-				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGOUT]);
-				responsObject.put(STATUS_FIELD, STATUSES[OK]);
-				this.username = null;
-			} else {
-				responsObject.put(RESPONSE_FIELD, COMMANDS[LOGOUT]);
-				responsObject.put(STATUS_FIELD, STATUSES[ERROR]);
-				responsObject.put(CONTEXT_FIELD, ERRORS[NOT_LOGGED_IN]);
-			}
-			sendJSONObject(responsObject);
-		}
-
-		public void pushMessage(String message) throws JSONException {
-			JSONObject responsObject = new JSONObject();
-			responsObject.put(RESPONSE_FIELD, COMMANDS[NEW_MESSAGE]);
-			responsObject.put(CONTEXT_FIELD, message);
-			sendJSONObject(responsObject);
-		}
-
-		private boolean isUsernameValid(String username) {
-			return isUsernameAvailable(username);
-		}
-		
-		private void sendJSONObject(JSONObject respons) {
-			String responsString = respons.toString();
-			out = new PrintWriter(OS, true);
-			out.println(responsString);
-		}
-		
-		@Override
-		public String toString() {
-			return username;
-		}
-		
-		//Not done
-		public void kill() throws IOException {
-			socket.close();
-		}
-
+		jsServer.start();
 	}
 }
