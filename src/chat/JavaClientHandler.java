@@ -59,7 +59,9 @@ public class JavaClientHandler extends ClientHandler {
 				JSONObject jsonObj = new JSONObject(message);
 				handleMessage(jsonObj);
 			} 
-			catch (IOException e1) { /* TODO Auto-generated catch block */ } 
+			catch (IOException e1) { 
+				// TODO: Clean up the client by logging out and notifying the server
+			} 
 			catch (JSONException e) { /* TODO Auto-generated catch block */ }
 		}
 	}

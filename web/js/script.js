@@ -69,9 +69,9 @@ $(document).ready(function() {
     if(socket!=null) { handleInput(input); }
   })
 
-  var init = function() {
-    pushMessage(root, 'Attempting to connect to server, please wait ...')
-    socket = io.connect('http://10.0.0.2:8889', {
+  var init = function(host) {
+    pushMessage(root, 'Attempting to connect to server: '+host+', please wait ...')
+    socket = io.connect('http://'+host, {
      'reconnection delay' : 2000,
      'force new connection' : true
     });
@@ -126,6 +126,11 @@ $(document).ready(function() {
           holdOn = false;
           break;
 
+        case 'setServer':
+          init(arguments);
+          break;
+
+          break;
         default:
           badCommand(command);
           break;
@@ -211,7 +216,7 @@ $(document).ready(function() {
     attemptScroll();
   }
 
-  init();
+  init('10.0.0.2:8889');
 
   var attemptScroll = function() {
     if(holdOn) return;

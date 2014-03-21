@@ -7,13 +7,9 @@ public class User {
 	private static final int NICELENGTH = 10;
 	
 	private String username, password = "Close, but no cigar!";
-	private String usernameColor = "FFFFFF";
+	private String usernameColor = "000000";
 	private boolean connected = false;
 	private boolean moderator = false;
-	
-	public User(String username) {
-		this.username = username;
-	}
 	
 	public User(String username, String password) {
 		this.username = username;

@@ -29,7 +29,7 @@ public class Server implements Runnable {
 	private boolean alive = true;
 	
 	public static void main(String[] args) {
-		new Server(Integer.valueOf(args[0]));
+		new Server(8989);//Integer.valueOf(args[0]));
 	}
 	
 	public Server(int port) {		
@@ -144,7 +144,7 @@ public class Server implements Runnable {
 		
 		jsServer.addDisconnectListener(new DisconnectListener() {
 	        public void onDisconnect(SocketIOClient client) {
-	        	JavaScriptClientHandler handler = jsHandlers.get(client);
+	        	//JavaScriptClientHandler handler = jsHandlers.get(client);
 	        	
 	        	// TODO: Remove from both map and list
 	        	jsHandlers.remove(client);

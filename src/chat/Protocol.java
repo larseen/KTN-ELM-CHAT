@@ -39,7 +39,7 @@ public class Protocol {
 	private static final String
 		RESPONSE_FIELD = "response",
 		REQUEST_FIELD = "request",
-		SERVER_PUSH_FIELD = "server push",
+		SERVER_PUSH_FIELD = "serverpush",
 		STATUS_FIELD = "status",
 		ERROR_FIELD = "error";
 	
@@ -49,7 +49,7 @@ public class Protocol {
 		"backlog", "users",
 		"user created", "user kicked", "user disconnected", "user connected",
 		"user changed name", "user became mod", "user wrote message", "user set motd",
-		"user deleted" };
+		"user deleted", "user changed namecolor" };
 	
 	@SuppressWarnings("unused")
 	private static final int 
@@ -57,7 +57,7 @@ public class Protocol {
 	BACKLOG = 7, USERS = 8,
 	USER_CREATED = 9, USER_KICKED = 10, USER_DISCONNECTED = 11, USER_CONNECTED = 12,
 	USER_CHANGED_NAME = 13, USER_BECAME_MOD = 14, USER_WROTE_MESSAGE = 15, USER_SET_MOTD = 16,
-	USER_DELETED = 17;
+	USER_DELETED = 17, USER_CHANGED_COLOR = 18;
 	
 	@SuppressWarnings("unused")
 	private static final String[] STATUSES = {"ERROR", "OK"};
@@ -86,7 +86,7 @@ public class Protocol {
 		"color",
 		"userlist",
 		"messagelist",
-		"id" };
+		"id"};
 	
 	@SuppressWarnings("unused")
 	private static final int
