@@ -1,5 +1,7 @@
 package chat;
 
+import java.nio.charset.Charset;
+
 import org.json.JSONObject;
 
 import com.corundumstudio.socketio.SocketIOClient;

@@ -29,7 +29,7 @@ public class Server implements Runnable {
 	private boolean alive = true;
 	
 	public static void main(String[] args) {
-		new Server(8989);//Integer.valueOf(args[0]));
+		new Server(Integer.valueOf(args[0]));
 	}
 	
 	public Server(int port) {		

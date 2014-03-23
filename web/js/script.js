@@ -1,14 +1,9 @@
-// First, checks if it isn't implemented yet.
-if (!String.prototype.format) {
-  String.prototype.format = function() {
-    var args = arguments;
-    return this.replace(/{(\d+)}/g, function(match, number) { 
-      return typeof args[number] != 'undefined'
-        ? args[number]
-        : match
-      ;
-    });
-  };
+function encode_utf8(s) {
+  return unescape(encodeURIComponent(s));
+}
+
+function decode_utf8(s) {
+  return decodeURIComponent(escape(s));
 }
 
 $(document).ready(function() {
@@ -130,7 +125,6 @@ $(document).ready(function() {
           init(arguments);
           break;
 
-          break;
         default:
           badCommand(command);
           break;
@@ -216,7 +210,7 @@ $(document).ready(function() {
     attemptScroll();
   }
 
-  init('10.0.0.2:8889');
+  init('25.111.128.88:9000');
 
   var attemptScroll = function() {
     if(holdOn) return;
