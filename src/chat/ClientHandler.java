@@ -34,10 +34,12 @@ public abstract class ClientHandler extends Thread implements Comparable<ClientH
 	private Server server;
 	private int ID;
 	private String username;
+	protected boolean isAlive;
 	
 	public ClientHandler(Server server, int ID) {
 		this.server = server;
 		this.ID = ID;
+		isAlive = true;
 	}
 	
 	public String getUsername() {
@@ -138,7 +140,10 @@ public abstract class ClientHandler extends Thread implements Comparable<ClientH
 		return ID;
 	}
 	
-	public abstract void terminate();
+	protected void terminate() {
+		server.removeClient(this);
+		isAlive = false;
+	}
 
 
 }

@@ -8,6 +8,7 @@ function decode_utf8(s) {
 
 $(document).ready(function() {
 
+  var defaultServer = 'http://elddev.com:9000';
   var inputField = $("#chat-input > input");
   var chatBox = $("#chat-area ul");
   var scrollArea = $(".nano-content");
@@ -210,7 +211,7 @@ $(document).ready(function() {
     attemptScroll();
   }
 
-  init('25.111.128.88:9000');
+  init(defaultServer);
 
   var attemptScroll = function() {
     if(holdOn) return;

@@ -20,6 +20,11 @@ public class ServerManager extends Thread {
 			try {
 				String input = in.readLine();
 				if(input.equals("stop")) break;
+				else if(input.equals("users")) {
+					server.printUsers();
+				} else if(input.equals("status")) {
+					server.printStatus();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

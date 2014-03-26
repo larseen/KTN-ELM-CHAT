@@ -23,6 +23,8 @@ public class Server implements Runnable {
 	
 	private ServerSocket serverSocket;
 	private final Server server;
+	private String IP;
+	private int port;
 	SocketIOServer jsServer;
 	private ArrayList<ClientHandler> clients = new ArrayList<ClientHandler>();
 	private ArrayList<String> messages = new ArrayList<String>();
@@ -39,14 +41,13 @@ public class Server implements Runnable {
 		
 		try {
 			// FINNER IP
-			String IP = InetAddress.getLocalHost().getHostAddress();
+			this.IP = InetAddress.getLocalHost().getHostAddress();
+			this.port = port;
 			
 			// SETTER JAVASCRIPT SERVER
 			startJavaScriptServer(port, IP);
 
 			serverSocket = new ServerSocket(port);
-			
-			System.out.println("Server running on ip: "+IP+":"+port);
 			run();
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -62,9 +63,7 @@ public class Server implements Runnable {
 	@Override
 	public void run() {
 		
-		
 		while (alive) {
-			System.out.println(clients);
 			ClientHandler client;
 			try {
 				Socket socket = serverSocket.accept();
@@ -89,8 +88,16 @@ public class Server implements Runnable {
 	
 	private void cleanup() {
 		System.out.println("Cleaning up ...");
-		//TODO: CLEAN UP WHEN SHUTS DOWN
-		for(ClientHandler c : clients) { c.terminate(); }
+		ClientHandler[] toRemove = new ClientHandler[clients.size()];
+		int i = 0;
+		for(ClientHandler c : clients) {
+			toRemove[i] = c;
+			i++;
+		}
+		for(ClientHandler c : toRemove) {
+			c.terminate();
+		}
+		
 		System.out.println("All done!");
 	}
 	
@@ -128,13 +135,10 @@ public class Server implements Runnable {
 		config.setHostname(host);
 		config.setPort(port+1);
 		jsServer = new SocketIOServer(config);
-		System.out.println("Javascript server running on ip: "+host+":"+(port+1));
 		final HashMap<SocketIOClient, JavaScriptClientHandler> jsHandlers = new HashMap<SocketIOClient, JavaScriptClientHandler>();
 		
 		jsServer.addConnectListener(new ConnectListener() {
 	        public void onConnect(SocketIOClient client) {
-	        	System.out.println(clients);
-	        	System.out.println("Got someone!");
 	        	int ID = generateID();
 	        	JavaScriptClientHandler handler = new JavaScriptClientHandler(server, client, ID);
 				jsHandlers.put(client, handler);
@@ -147,9 +151,10 @@ public class Server implements Runnable {
 	        	//JavaScriptClientHandler handler = jsHandlers.get(client);
 	        	
 	        	// TODO: Remove from both map and list
-	        	jsHandlers.remove(client);
+	        	JavaScriptClientHandler h = jsHandlers.remove(client);
+	        	h.terminate();
+	        	
 	        	//int ID = handler.getID();
-	        	System.out.println("Dropped one");
 	        }
 	    });
 		
@@ -166,5 +171,19 @@ public class Server implements Runnable {
 	    });
 		
 		jsServer.start();
+	}
+	
+	public void removeClient(ClientHandler c) {
+		clients.remove(c);
+	}
+	
+	public void printUsers() {
+		System.out.println(clients);
+	}
+	
+	public void printStatus() {
+		System.out.println("Server is online");
+		System.out.println("Java server: "+IP+":"+port);
+		System.out.println("Web server: "+IP+":"+(port+1));
 	}
 }

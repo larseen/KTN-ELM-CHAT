@@ -16,7 +16,6 @@ public class JavaClientHandler extends ClientHandler {
 	private InputStream IS;
 	private OutputStream OS;
 	private PrintWriter out;
-	private boolean isAlive = true;
 	//TODO: Add the BufferedReader as a field.
 	
 	public JavaClientHandler(Server server, Socket socket, int ID) {
@@ -26,25 +25,19 @@ public class JavaClientHandler extends ClientHandler {
 		try {
 			IS = socket.getInputStream();
 			OS = socket.getOutputStream();
+			out = new PrintWriter(OS, true);
 			/*
 			 * TODO: We don't really need the input- and output stream. Instead,
 			 * initiate the BufferedReader and PrintWriter here.
 			 */
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	protected void sendJSONObject(JSONObject respons) {
 		String responsString = respons.toString();
-		out = new PrintWriter(OS, true);
 		out.println(responsString);
-	}
-	
-	//Not done
-	public void kill() throws IOException {
-		socket.close();
 	}
 	
 	@Override
@@ -53,22 +46,27 @@ public class JavaClientHandler extends ClientHandler {
 			String message;
 			try {
 				//TODO: Clean
-				message = ((new BufferedReader(new InputStreamReader(IS))).readLine());
-				if(!isAlive) { return; }
+				message = ((new BufferedReader(new InputStreamReader(IS,"UTF-8"))).readLine());
+				if(message == null) {
+					terminate();
+					return;
+				}
 				
 				JSONObject jsonObj = new JSONObject(message);
 				handleMessage(jsonObj);
 			} 
 			catch (IOException e1) { 
-				// TODO: Clean up the client by logging out and notifying the server
+				if(isAlive) terminate();
 			} 
-			catch (JSONException e) { /* TODO Auto-generated catch block */ }
+			catch (JSONException e) { 
+				 
+			}
 		}
 	}
 
 	@Override
 	public void terminate() {
-		isAlive = false;
+		super.terminate();
 		try {
 			IS.close();
 			OS.close();

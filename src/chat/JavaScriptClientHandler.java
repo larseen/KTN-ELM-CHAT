@@ -1,7 +1,5 @@
 package chat;
 
-import java.nio.charset.Charset;
-
 import org.json.JSONObject;
 
 import com.corundumstudio.socketio.SocketIOClient;
@@ -22,6 +20,8 @@ public class JavaScriptClientHandler extends ClientHandler {
 
 
 	@Override
-	public void terminate() { return; }
+	public void terminate() { 
+		super.terminate();
+	}
 
 }

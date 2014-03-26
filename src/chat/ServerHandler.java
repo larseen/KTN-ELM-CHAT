@@ -58,7 +58,8 @@ public class ServerHandler extends Thread {
 	 */
 	private static final String
 		HOST_NOT_FOUND = "The host you were trying to connect to was not found! Please try again.",
-		IO_ERROR = "Something went wrong with the I/O, please contact Raymi",
+		IO_ERROR = "Lost connection to the server, if you want to disconnect, type 'quit'.\nAttempting to reconnect in 5 seconds ...",
+		RECONNECTING = "Attempting to reconnect to server",
 		JSON_ERROR = "Something went wrong with JSON formatting, please contact Raymi",
 		LOGIN_GRANTED = "Successfully logged in!",
 		LOGOUT_GRANTED = "Successfully logged out!";
@@ -67,7 +68,10 @@ public class ServerHandler extends Thread {
 	private BufferedReader in;
 	private PrintWriter out;
 	private Client client;
-	
+	private String HOST;
+	private int PORT;
+	private boolean isAlive;
+	private boolean lostConnection;
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 	 *							INITIALIZING VARIABLES
@@ -78,13 +82,28 @@ public class ServerHandler extends Thread {
 	 */
 	public ServerHandler(Client client, String HOST, int PORT) {
 		this.client = client;
+		this.HOST = HOST;
+		this.PORT = PORT;
+		initialize();
+	}
+	
+	private void initialize() {
+		isAlive = true;
+		
 		try {				
 			socket = new Socket(HOST, PORT);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 			out = new PrintWriter(socket.getOutputStream(), true);
+			lostConnection = false;
 		}
-		catch (UnknownHostException e) { pushMessage(HOST_NOT_FOUND); } 
-		catch (IOException e) { pushMessage(IO_ERROR); }
+		catch (UnknownHostException e) { 
+			pushMessage(HOST_NOT_FOUND); 
+			System.exit(OK);
+		} 
+		catch (IOException e) { 
+			//pushMessage(IO_ERROR);
+			lostConnection = true;
+		}
 	}
 	
 	private void pushMessage(String message) {
@@ -101,15 +120,52 @@ public class ServerHandler extends Thread {
 	 */
 	@Override
 	public void run() {
+		while(lostConnection) {
+			if(lostConnection()) break;
+		}
 		
-		while(true) {
-			try { 	
-				JSONObject response = new JSONObject(in.readLine());
+		while(isAlive) {
+			try {
+				String message = in.readLine();
+				if(message == null) { 
+					if(lostConnection) continue;
+					else if(lostConnection()) break;
+					else continue;
+				}
+				JSONObject response = new JSONObject(message);
 				resolveResponse(response); 
 			} 	
-			catch (IOException e) { pushMessage(IO_ERROR); } 
+			catch (IOException e) { 
+				if(lostConnection) continue;
+				else if(lostConnection()) break;
+				else continue;
+			} 
 			catch (JSONException e) { pushMessage(JSON_ERROR); }		
 		}
+		
+		try {
+			if(socket != null) {
+				out.close();
+				in.close();
+				socket.close();
+			}
+			System.out.println("Successfully disconnected!");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private boolean lostConnection() {
+		if(!isAlive) { return true; }
+		lostConnection = true;
+		pushMessage(IO_ERROR);
+		try { Thread.sleep(5000); } 
+		catch (InterruptedException e1) { e1.printStackTrace(); }
+		if(isAlive) {
+			pushMessage(RECONNECTING);
+			initialize();
+		}
+		return false;
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -249,7 +305,6 @@ public class ServerHandler extends Thread {
 			request.put(REQUEST_FIELD, COMMANDS[LOGOUT]);
 			sendRequest(request);
 		} catch (JSONException e) { pushMessage(JSON_ERROR); }
-		
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -260,6 +315,16 @@ public class ServerHandler extends Thread {
 	 */
 	private void sendRequest(JSONObject request) {
 		out.println(request.toString());
+	}
+	
+	public void disconnect() {
+		System.out.println("Attempting to close socket and disconnect ...");
+		isAlive = false;
+		try {
+			if(socket != null) socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

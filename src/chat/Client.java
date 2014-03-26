@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * 								CLIENT CLASS
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -23,6 +24,13 @@ import java.util.List;
  *	In the constructor a new ServerHandler is spawned.
  */
 public class Client {
+	
+	public static void main(String[] args) {
+		new Client("185.21.133.161", 8999);//args[0], Integer.valueOf(args[1]));
+	}
+	
+	//TODO: ADD DESCRIPTION
+	private boolean isAlive;
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 	 *							COMMAND TRIGGERS
@@ -59,14 +67,18 @@ public class Client {
 	 */
 	public Client(String HOST, int PORT) {
 		
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader in;
+		in = new BufferedReader(new InputStreamReader(System.in));
 		serverHandler = new ServerHandler(this, HOST, PORT);
 		serverHandler.start();
+		isAlive = true;
 		
 		// Main while loop.
-		while(true){
+		while(isAlive){
 			interpretInput(getKeyboardInput(in));
 		}
+		// Program is shutting down
+		System.out.println("Program terminating ...");
 	}
 	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -93,9 +105,18 @@ public class Client {
 			case "message":
 				attemptSendMessage(input);
 				break;
+			case "disconnect":
+				attemptDisconnect();
+				break;
 		}
 	}
 	
+	//TODO: Add description to this!
+	private void attemptDisconnect() {
+		serverHandler.disconnect();
+		isAlive = false;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * 					READING INPUT FROM THE USER
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -107,7 +128,10 @@ public class Client {
 	 */
 	public String getKeyboardInput(BufferedReader in){
 		try {
-			return in.readLine();
+			String out = in.readLine();
+			out = new String(out.getBytes("ISO-8859-1"));
+			System.out.println(out);
+			return out;
 		} catch (IOException e) {
 			pushMessage("Something went wrong when trying to read input");
 			e.printStackTrace();
@@ -178,9 +202,6 @@ public class Client {
 		System.out.println(message);
 	}
 	
-	
-	
-	
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 *			REPRESENTING A COMMAND AND IT'S TYPE AS ONE OBJECT
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -210,6 +231,11 @@ public class Client {
 				}
 			}
 			
+			if(input.equals("quit")) {
+				this.typeOfCommand = "disconnect";
+				return;
+			}
+			
 			this.command = null;
 			this.typeOfCommand = "message";
 		}
@@ -228,10 +254,6 @@ public class Client {
 			}
 			return false;	
 		}
-	}
-	
-	public static void main(String[] args) {
-		new Client(args[0], Integer.valueOf(args[1]));
 	}
 	
 }
